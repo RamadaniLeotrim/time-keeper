@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local env files
+.env
+.env.local
+
+# Database
+local.db
+
+# Excel files
+*.xlsx
+
+# Temporary scripts
+inspect_excel.cjs
