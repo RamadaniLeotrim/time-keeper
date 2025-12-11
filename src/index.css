@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0f172a; /* Slate 900 */
+  --foreground: #f8fafc; /* Slate 50 */
+  --primary: #38bdf8; /* Sky 400 */
+  --secondary: #818cf8; /* Indigo 400 */
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}
