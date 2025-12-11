@@ -75,6 +75,14 @@ class StorageService {
         }
         // await db.delete(timeEntries).where(eq(timeEntries.id, id));
     }
+
+    async clearAllEntries(): Promise<void> {
+        if (USE_MOCK) {
+            localStorage.setItem('timekeeper_entries', JSON.stringify([]));
+            return;
+        }
+        // await db.delete(timeEntries);
+    }
 }
 
 export const storage = new StorageService();

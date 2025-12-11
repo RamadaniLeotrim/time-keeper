@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { storage, type TimeEntry, type UserConfig } from '../lib/storage';
 import TimeEntryModal from '../components/TimeEntryModal';
 import { Plus, Clock, Sun, TrendingUp, Calendar, CalendarDays, CalendarRange } from 'lucide-react';
-import { startOfYear, startOfMonth, startOfWeek, eachDayOfInterval, isWeekend, format, startOfDay, isBefore } from 'date-fns';
+import { startOfYear, startOfMonth, startOfWeek, eachDayOfInterval, isWeekend, format, startOfDay, isBefore, subDays } from 'date-fns';
 
 const Dashboard: React.FC = () => {
     const [config, setConfig] = useState<UserConfig | null>(null);
@@ -31,6 +31,7 @@ const Dashboard: React.FC = () => {
     const calculateStats = (cfg: UserConfig, data: TimeEntry[]) => {
         const dailyTargetMin = (cfg.weeklyTargetHours / 5) * 60;
         const today = startOfDay(new Date());
+        const yesterday = subDays(today, 1);
 
         const calcBalanceForPeriod = (start: Date, end: Date) => {
             let balance = 0;
@@ -60,13 +61,33 @@ const Dashboard: React.FC = () => {
                 // Weekday
                 // If any entry types are 'vacation', 'sick', 'holiday' -> Target is fulfilled (0 delta)
                 // Actually, often these count as "Target Hours Worked".
-                const isExcused = dayEntries.some(e => ['vacation', 'sick', 'accident', 'holiday', 'school'].includes(e.type));
+                // Weekday
+                // Check if there are ANY absences/excuses
+                const excuseEntries = dayEntries.filter(e => ['vacation', 'sick', 'accident', 'holiday', 'school'].includes(e.type));
+                let creditedMin = 0;
 
-                if (isExcused) {
-                    // Balance doesn't change (0 diff from target)
-                    // Or strictly: Work = Target. Diff = 0.
-                    return;
+                if (excuseEntries.length > 0) {
+                    excuseEntries.forEach(e => {
+                        // Calculate Credit based on notes or type
+                        // If "Ganzer Tag" or default -> Full Target Credit
+                        // If "Vormittag" / "Nachmittag" (Half Day) -> Half Target Credit
+                        const lowerNote = (e.notes || '').toLowerCase();
+                        if (lowerNote.includes('vormittag') || lowerNote.includes('nachmittag')) {
+                            creditedMin += (dailyTargetMin / 2);
+                        } else {
+                            // Assume full day if not specified as half
+                            creditedMin += dailyTargetMin;
+                        }
+                    });
                 }
+
+                // If processed as full excuse (credit >= target) and no work, we can skip deficit calc (it cancels out)
+                // BUT we must allow over-fulfillment (working on a holiday?) -> Technically possible.
+                // The formula: Balance += (Worked + Credit) - Target.
+
+                // Exception: If Credit >= Target, we usually cap Credit at Target? 
+                // No, getting a paid holiday AND working is usually overtime (Plus).
+                // So (Worked + Credit) - Target is correct.
 
                 // Work entries
                 const workEntries = dayEntries.filter(e => e.type === 'work');
@@ -75,19 +96,22 @@ const Dashboard: React.FC = () => {
                     workedMin += calculateDuration(e);
                 });
 
-                balance += (workedMin - dailyTargetMin);
+
+
+                balance += ((workedMin + creditedMin) - dailyTargetMin);
             });
             return balance;
         };
 
         // 1. Year Balance (From 1.1.)
-        setYearBalance(calcBalanceForPeriod(startOfYear(today), today));
+        // 1. Year Balance (From 1.1.)
+        setYearBalance(calcBalanceForPeriod(startOfYear(today), yesterday));
 
         // 2. Month Balance (From 1. of Month)
-        setMonthBalance(calcBalanceForPeriod(startOfMonth(today), today));
+        setMonthBalance(calcBalanceForPeriod(startOfMonth(today), yesterday));
 
         // 3. Week Balance (From Monday)
-        setWeekBalance(calcBalanceForPeriod(startOfWeek(today, { weekStartsOn: 1 }), today));
+        setWeekBalance(calcBalanceForPeriod(startOfWeek(today, { weekStartsOn: 1 }), yesterday));
 
         // Vacation Balance
         const taken = data.filter(e => e.type === 'vacation').length;
@@ -134,7 +158,7 @@ const Dashboard: React.FC = () => {
                     <div className="flex justify-between items-center mb-2">
                         <div className="flex items-center gap-2 text-slate-400">
                             <Calendar size={18} />
-                            <h3 className="text-sm font-medium uppercase tracking-wider">Jahressaldo</h3>
+                            <h3 className="text-sm font-medium uppercase tracking-wider">Jahressaldo (bis Gestern)</h3>
                         </div>
                         <TrendingUp className={yearBalance >= 0 ? "text-emerald-400" : "text-rose-400"} size={20} />
                     </div>

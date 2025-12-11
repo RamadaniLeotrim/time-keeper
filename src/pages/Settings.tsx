@@ -152,6 +152,25 @@ const Settings: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Data Management */}
+                <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 p-6 rounded-2xl relative overflow-hidden group hover:border-rose-500/30 transition-colors">
+                    <h2 className="text-xl font-semibold text-white mb-4 text-rose-400">Gefahrenzone</h2>
+                    <p className="text-slate-400 text-sm mb-4">Hier können Sie alle importierten Daten löschen. Dies kann nicht rückgängig gemacht werden.</p>
+                    <button
+                        onClick={async () => {
+                            if (confirm('Sind Sie sicher? Alle Einträge werden unwiderruflich gelöscht.')) {
+                                await storage.clearAllEntries();
+                                alert('Datenbank geleert.');
+                                setStatus('saved');
+                                setTimeout(() => setStatus('idle'), 2000);
+                            }
+                        }}
+                        className="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg transition-colors text-sm font-medium"
+                    >
+                        Alle Daten löschen
+                    </button>
+                </div>
             </div>
 
             {/* Save Button */}
