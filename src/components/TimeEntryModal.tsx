@@ -97,7 +97,9 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                                 { id: 'sick', label: 'Krank', icon: '💊' },
                                 { id: 'accident', label: 'Unfall', icon: '🤕' },
                                 { id: 'school', label: 'Schule', icon: '📚' },
+                                { id: 'trip', label: 'Dienstgang', icon: '🚗' },
                                 { id: 'holiday', label: 'Feiertag', icon: '🎉' },
+                                { id: 'special', label: 'Spezial', icon: '🎗️' },
                                 { id: 'other', label: 'Sonstiges', icon: '📝' },
                             ].map(t => (
                                 <button

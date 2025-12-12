@@ -7,6 +7,7 @@ const Layout: React.FC = () => {
         { path: '/', label: 'Dashboard', icon: '📊' },
         { path: '/calendar', label: 'Kalender', icon: '📅' },
         { path: '/settings', label: 'Einstellungen', icon: '⚙️' },
+        { path: '/debug', label: 'Debug', icon: '🐞' },
     ];
 
     return (

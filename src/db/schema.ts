@@ -9,7 +9,7 @@ export const userConfig = sqliteTable('user_config', {
 export const timeEntries = sqliteTable('time_entries', {
     id: integer('id').primaryKey(),
     date: text('date').notNull(), // ISO Date YYYY-MM-DD
-    type: text('type', { enum: ['work', 'vacation', 'sick', 'accident', 'holiday', 'school', 'other'] }).notNull().default('work'),
+    type: text('type', { enum: ['work', 'vacation', 'sick', 'accident', 'holiday', 'school', 'special', 'trip', 'other'] }).notNull().default('work'),
     startTime: text('start_time'), // HH:mm
     endTime: text('end_time'), // HH:mm
     pauseDuration: integer('pause_duration').default(0), // in minutes

@@ -16,11 +16,11 @@ class StorageService {
     async getUserConfig(): Promise<UserConfig> {
         if (USE_MOCK) {
             const stored = localStorage.getItem('timekeeper_config');
-            return stored ? JSON.parse(stored) : { id: 1, weeklyTargetHours: 40, yearlyVacationDays: 25 };
+            return stored ? JSON.parse(stored) : { id: 1, weeklyTargetHours: 41, yearlyVacationDays: 25 };
         }
         // DB Implementation (Future)
         const result = await db.select().from(userConfig).limit(1);
-        return result[0] || { id: 1, weeklyTargetHours: 40, yearlyVacationDays: 25 };
+        return result[0] || { id: 1, weeklyTargetHours: 41, yearlyVacationDays: 25 };
     }
 
     async saveUserConfig(config: Partial<UserConfig>) {
@@ -82,6 +82,32 @@ class StorageService {
             return;
         }
         // await db.delete(timeEntries);
+    }
+
+    async deduplicateEntries(): Promise<number> {
+        const current = await this.getEntries();
+        const unique = new Map<string, TimeEntry>();
+        let duplicatesRemoved = 0;
+
+        current.forEach(e => {
+            // Create a unique key for the entry
+            const key = `${e.date}-${e.type}-${e.startTime}-${e.endTime}-${e.notes}`;
+            if (!unique.has(key)) {
+                unique.set(key, e);
+            } else {
+                duplicatesRemoved++;
+            }
+        });
+
+        if (duplicatesRemoved > 0) {
+            if (USE_MOCK) {
+                localStorage.setItem('timekeeper_entries', JSON.stringify(Array.from(unique.values())));
+            } else {
+                // DB implementation would be complex delete
+                // For now assuming Mock
+            }
+        }
+        return duplicatesRemoved;
     }
 }
 
