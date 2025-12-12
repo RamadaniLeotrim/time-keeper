@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { userConfig, timeEntries } from '../db/schema';
-// import { eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 
 // Types derived from Schema
@@ -8,7 +8,7 @@ export type UserConfig = typeof userConfig.$inferSelect;
 export type TimeEntry = typeof timeEntries.$inferSelect;
 export type NewTimeEntry = typeof timeEntries.$inferInsert;
 
-const USE_MOCK = true; // Set to false once Turso is working
+const USE_MOCK = false;
 
 class StorageService {
 
@@ -18,21 +18,31 @@ class StorageService {
             const stored = localStorage.getItem('timekeeper_config');
             return stored ? JSON.parse(stored) : { id: 1, weeklyTargetHours: 41, yearlyVacationDays: 25 };
         }
-        // DB Implementation (Future)
-        const result = await db.select().from(userConfig).limit(1);
-        return result[0] || { id: 1, weeklyTargetHours: 41, yearlyVacationDays: 25 };
+        try {
+            const result = await db.select().from(userConfig).where(eq(userConfig.id, 1));
+            if (result.length > 0) return result[0];
+
+            // Init default
+            const def = { id: 1, weeklyTargetHours: 41, yearlyVacationDays: 25 };
+            await db.insert(userConfig).values(def).onConflictDoNothing();
+            return def;
+        } catch (e) {
+            console.error("Storage Error", e);
+            return { id: 1, weeklyTargetHours: 41, yearlyVacationDays: 25 };
+        }
     }
 
     async saveUserConfig(config: Partial<UserConfig>) {
+        const current = await this.getUserConfig();
+        const updated = { ...current, ...config };
+
         if (USE_MOCK) {
-            const current = await this.getUserConfig();
-            const updated = { ...current, ...config };
             localStorage.setItem('timekeeper_config', JSON.stringify(updated));
             return updated;
         }
-        // DB Implementation
-        // ... upsert logic
-        return config;
+
+        await db.insert(userConfig).values(updated).onConflictDoUpdate({ target: userConfig.id, set: updated });
+        return updated;
     }
 
     // Entries
@@ -47,8 +57,7 @@ class StorageService {
     async addTimeEntry(entry: NewTimeEntry): Promise<void> {
         if (USE_MOCK) {
             const current = await this.getEntries();
-            // Assign a fake ID for mock
-            const newEntry = { ...entry, id: Date.now() };
+            const newEntry = { ...entry, id: Date.now() } as TimeEntry;
             const updated = [newEntry, ...current];
             localStorage.setItem('timekeeper_entries', JSON.stringify(updated));
             return;
@@ -63,7 +72,7 @@ class StorageService {
             localStorage.setItem('timekeeper_entries', JSON.stringify(updated));
             return;
         }
-        // await db.update(timeEntries).set(entry).where(eq(timeEntries.id, id));
+        await db.update(timeEntries).set(entry).where(eq(timeEntries.id, id));
     }
 
     async deleteTimeEntry(id: number): Promise<void> {
@@ -73,7 +82,7 @@ class StorageService {
             localStorage.setItem('timekeeper_entries', JSON.stringify(updated));
             return;
         }
-        // await db.delete(timeEntries).where(eq(timeEntries.id, id));
+        await db.delete(timeEntries).where(eq(timeEntries.id, id));
     }
 
     async clearAllEntries(): Promise<void> {
@@ -81,7 +90,7 @@ class StorageService {
             localStorage.setItem('timekeeper_entries', JSON.stringify([]));
             return;
         }
-        // await db.delete(timeEntries);
+        await db.delete(timeEntries);
     }
 
     async deduplicateEntries(): Promise<number> {
@@ -103,8 +112,11 @@ class StorageService {
             if (USE_MOCK) {
                 localStorage.setItem('timekeeper_entries', JSON.stringify(Array.from(unique.values())));
             } else {
-                // DB implementation would be complex delete
-                // For now assuming Mock
+                // Brute force: delete all, re-insert unique.
+                await db.delete(timeEntries);
+                if (unique.size > 0) {
+                    await db.insert(timeEntries).values(Array.from(unique.values()));
+                }
             }
         }
         return duplicatesRemoved;
