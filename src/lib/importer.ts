@@ -62,115 +62,207 @@ export const parseExcelExport = async (file: File): Promise<NewTimeEntry[]> => {
                         let pause = 0;
                         let hasOriginalPause = false;
 
-                        if (t1 && t4) {
-                            // Case: 4 Bookings (Full Day with Break)
-                            startTime = t1;
-                            endTime = t4;
-                            if (t2 && t3) {
-                                pause = timeToMinutes(t3) - timeToMinutes(t2);
-                                hasOriginalPause = true;
-                            } else {
-                                // Fallback if middle cols missing but 3 and 6 exist? Unlikely but safe to assume 0 pause or calculate implicit? 
-                                // Better to stick to explicit.
-                                pause = 30; // Legacy default
-                            }
-                        } else if (t1 && t2) {
-                            // Case: 2 Bookings (Single Block / Half Day)
-                            // Only if t4 is missing
-                            startTime = t1;
-                            endTime = t2;
-                            pause = 0;
-                            hasOriginalPause = false;
+
+                        // 1. Identify Scenario: 2 Bookings vs 4 Bookings
+                        // Note: "2 Bookings" means continuous block (Start -> End)
+                        // "4 Bookings" means Split Day (Start1 -> End1, Start2 -> End2)
+
+                        let isFourBookings = false;
+                        let isTwoBookings = false;
+
+                        if (t1 && t2 && t3 && t4) {
+                            // Classic 4 Bookings
+                            isFourBookings = true;
+                        } else if (t1 && t4 && t2 && t3) {
+                            // Redundant check but covers all 4 present
+                            isFourBookings = true;
+                        } else if (t1 && t2 && !t3 && !t4) {
+                            // Classic 2 Bookings (Single Block)
+                            isTwoBookings = true;
+                        } else if (t1 && t4 && !t2 && !t3) {
+                            // Implicit Single Block (StartCol and EndCol, no middle)
+                            // Treated as 2 Bookings
+                            isTwoBookings = true;
                         }
 
-                        if (startTime && endTime) {
-                            // Automatic Pause Deduction Rules
-                            // Layer 1: Lunch Correction (If forgot to stamp)
-                            // If attendance > 7h AND (No Original Pause OR Note says 'Keine Pause' implied by 0), add 30m.
+                        // Dates for Weekend Check
+                        const d = new Date(dateStr);
+                        const dayOfWeek = d.getDay(); // 0=Sun, 6=Sat
+                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-                            const startMin = timeToMinutes(startTime);
-                            const endMin = timeToMinutes(endTime);
-                            let attendance = endMin - startMin;
+                        // 9:30 Check Helper
+                        const check930 = () => {
+                            if (isWeekend) return false;
+                            const targetCheck = 9 * 60 + 30; // 570 min
 
-                            // Handle midnight crossing
-                            if (attendance < 0) attendance += (24 * 60);
-
-                            // LAYER 1: Lunch Correction
-                            if (attendance > (7 * 60)) {
-                                if (!hasOriginalPause || pause === 0) {
-                                    // Case 1: Long day, forgot to stamp -> +30m
-                                    pause += 30;
-                                } else if (hasOriginalPause && pause < 30) {
-                                    // Case 2: Stamped (4 bookings), but < 30m -> Fill to 30m
-                                    // User Rule: "Nur dann auf 30min erhöht, wenn die Totale arbeitszeit > 7h ist"
-                                    pause = 30;
-                                }
-                            }
-
-                            // LAYER 2: Mandatory Breaks (Always applied to Net Work)
-                            // LAYER 2: Mandatory Breaks (Always applied to Net Work)
-                            // Rule 1: Add 15m ONLY if working at 09:30
-                            // User request: "Nur wenn man um 9:30Uhr gearbeitet hat, werden die 15min abgezogen"
-
-                            // Check intervals using cleaned variables (t1, t2, t3, t4) derived earlier
-                            const targetCheck = 9 * 60 + 30; // 09:30 = 570 min
-                            let workingAt930 = false;
-
-                            if (t1 && t2 && t3 && t4) {
-                                // 4 Bookings (Split Day)
+                            if (isFourBookings && t1 && t2 && t3 && t4) {
                                 const s1 = timeToMinutes(t1);
                                 const e1 = timeToMinutes(t2);
                                 const s2 = timeToMinutes(t3);
                                 const e2 = timeToMinutes(t4);
-                                if ((s1 <= targetCheck && targetCheck < e1) || (s2 <= targetCheck && targetCheck < e2)) {
-                                    workingAt930 = true;
+                                return (s1 <= targetCheck && targetCheck < e1) || (s2 <= targetCheck && targetCheck < e2);
+                            }
+
+                            if (isTwoBookings) {
+                                // Resolve Start/End
+                                const sStr = t1;
+                                const eStr = t2 || t4; // If Implicit t1-t4
+                                if (sStr && eStr) {
+                                    const s = timeToMinutes(sStr);
+                                    const e = timeToMinutes(eStr);
+                                    return s <= targetCheck && targetCheck < e;
                                 }
-                            } else if (t1 && t2) {
-                                // 2 Bookings (Single Block)
-                                const s = timeToMinutes(t1);
-                                const e = timeToMinutes(t2);
-                                if (s <= targetCheck && targetCheck < e) {
-                                    workingAt930 = true;
+                            }
+                            return false;
+                        }
+
+                        const workingAt930 = check930();
+
+                        // --- SCENARIO A: 2 BOOKINGS (No Stamp Out) ---
+                        if (isTwoBookings) {
+                            // Determine Start/End
+                            const sStr = t1;
+                            const eStr = t2 || t4;
+
+                            if (sStr && eStr) {
+                                startTime = sStr;
+                                endTime = eStr;
+
+                                const s = timeToMinutes(sStr);
+                                const e = timeToMinutes(eStr);
+                                let attendance = e - s;
+                                if (attendance < 0) attendance += (24 * 60); // Midnight wrap
+
+                                // Base Pause
+                                pause = 0;
+                                let effectiveAttendance = attendance;
+
+                                // Rule 1: Working at 9:30 -> Deduct 15min FIRST
+                                if (workingAt930) {
+                                    pause += 15;
+                                    effectiveAttendance -= 15;
                                 }
-                            } else if (t1 && t4 && !t2 && !t3) {
-                                // Fallback (Start/End only, implicit single block, though usually caught by Case 4 Bookings logi above if full)
-                                // But if it fell through, treated as single block t1->t4
-                                const s = timeToMinutes(t1);
-                                const e = timeToMinutes(t4);
-                                if (s <= targetCheck && targetCheck < e) {
-                                    workingAt930 = true;
+
+                                // Rule 2: > 5.5h (Based on REDUCED attendance) -> +30min
+                                if (effectiveAttendance > (5.5 * 60)) {
+                                    pause += 30;
+                                    // effectiveAttendance -= 30; // Not explicitly requested to chain reductions, usually thresholds are based on the state after previous required breaks?
+                                    // User said: "schaust erst dann wie viel die totale Arbeitszeit ist um zu definieren ob arbeitszeit > 5.5h"
+                                    // This implies the 15m reduction is the ONLY one that affects the check base? 
+                                    // "Standard" assumption: 9:30 break counts as performed. 
+                                    // Lunch break is TO BE ADDED. 
+                                    // So we check if (Available Time - Mandatory 9:30 Break) > 5.5h. 
+                                    // If so, we deduct Lunch.
+                                }
+
+                                // Rule 3: > 9h (Based on REDUCED attendance?)
+                                // "und wenn nach alldem die total arbeitszeit immernoch über 9h ist" - applied to 4-booking, likely same for 2-booking?
+                                // User said for Scenario 1: "schaust erst dann wie viel die totale Arbeitszeit ist um zu definieren ob arbeitszeit > 5.5h oder >9h"
+                                // So yes, check against effectiveAttendance.
+
+                                if (effectiveAttendance > (9 * 60)) {
+                                    const targetPause = workingAt930 ? 60 : 45;
+                                    if (pause < targetPause) {
+                                        pause = targetPause;
+                                    }
+                                }
+
+                                entries.push({
+                                    date: dateStr,
+                                    type: 'work',
+                                    startTime,
+                                    endTime,
+                                    pauseDuration: pause,
+                                    notes: 'Auto-Pause (2 Bookings)'
+                                });
+                            }
+                        }
+
+                        // --- SCENARIO B: 4 BOOKINGS (Stamped Out) ---
+                        else if (isFourBookings && t1 && t2 && t3 && t4) {
+                            startTime = t1;
+                            endTime = t4;
+
+                            const s1 = timeToMinutes(t1);
+                            const e1 = timeToMinutes(t2);
+                            const s2 = timeToMinutes(t3);
+                            const e2 = timeToMinutes(t4);
+
+                            const rawNet = (e1 - s1) + (e2 - s2); // Pure worked time
+                            const gap = s2 - e1; // The actual hole in the day
+
+                            // Rule 1: Lunch Correction
+                            // If gap < 30 -> set to 30. Else gap.
+                            // UPDATE: Only apply this if Raw Work > 7h
+                            let effectivePause = gap;
+
+                            if (rawNet > (7 * 60)) {
+                                if (effectivePause < 30) {
+                                    effectivePause = 30;
                                 }
                             }
 
-                            // Check for Weekend
-                            const d = new Date(dateStr);
-                            const dayOfWeek = d.getDay(); // 0=Sun, 6=Sat
-                            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
-                            if (workingAt930 && !isWeekend) {
-                                pause += 15;
+                            // Rule 2: Working at 9:30 -> +15min (added to the PAUSE DEDUCTION, reducing Net)
+                            if (workingAt930) {
+                                effectivePause += 15;
                             }
 
-                            let currentNetWork = attendance - (pause >= 0 ? pause : 0);
+                            // Calculate Net with these deductions
+                            // We start with the full span and subtract the effective pause?
+                            // Or we take RawNet and Subtract the "Extra" added pause?
+                            // Logic:
+                            // Real Gap = 20m.
+                            // Effective Pause = 30m. (Added 10m virtual pause).
+                            // 9:30 Active -> +15m virtual pause.
+                            // Total Virtual Pause = 30 + 15 = 45m.
+                            // Real Gap was 20m.
+                            // Extra Deduction = 45 - 20 = 25m.
+                            // Net Work = RawNet - 25m.
 
-                            // Rule 2: > 9h Net Work -> Minimum 60m Pause
-                            if (currentNetWork > (9 * 60)) {
-                                if (pause < 60) {
-                                    const diff = 60 - pause;
-                                    pause += diff;
-                                    // currentNetWork -= diff; // Optional: Technically net work decreases further, but irrelevant for further rules
+                            let extraDeduction = effectivePause - gap;
+                            let currentNet = rawNet - extraDeduction;
+
+                            // Rule 3: > 9h Net -> Ensure min pause 45m or 60m
+                            // "if after all this, the total working time is still > 9h"
+                            if (currentNet > (9 * 60)) {
+                                const targetLimit = workingAt930 ? 60 : 45;
+
+                                // Current Effective Pause vs Target
+                                if (effectivePause < targetLimit) {
+                                    // Need to increase Effective Pause
+                                    const diff = targetLimit - effectivePause;
+                                    effectivePause += diff;
+                                    // Recalculate Net to be safe, though not needed for output
+                                    currentNet -= diff;
                                 }
                             }
+
+                            // The "pauseDuration" we store is usually the deducted amount? 
+                            // Or the stored pause is just metadata? The app calculates duration as (End-Start) - Pause.
+                            // So if Start=08:00, End=17:00 (Span 9h).
+                            // If we want Net=8h, Pause must be 60.
+                            // Here Span (t4-t1) includes the Gap.
+                            // Span = (e2-s1).
+                            // Net = Span - Pause.
+                            // We want Net to equal `currentNet`.
+                            // So Pause = Span - currentNet.
+
+                            const span = e2 - s1;
+                            const finalPause = span - currentNet;
 
                             entries.push({
                                 date: dateStr,
                                 type: 'work',
                                 startTime,
                                 endTime,
-                                pauseDuration: pause >= 0 ? pause : 0,
-                                notes: ''
+                                pauseDuration: Math.round(finalPause),
+                                notes: 'Auto-Pause (4 Bookings)'
                             });
                         }
+                        // Helper for fallbacks or unhandled cases? 
+                        // The previous logic covered t1/t2 case. 
+                        // What if t1/t4 only but no t2/t3? Covered by isTwoBookings logic above.
+
                     }
 
                     // 2. Handle Special Types (GT, VM, NM)
