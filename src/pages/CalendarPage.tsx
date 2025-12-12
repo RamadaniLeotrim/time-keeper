@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, isSameMonth, addMonths, subMonths, getYear, setMonth, isToday } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, isSameMonth, addMonths, subMonths, getYear, setMonth, isToday, addWeeks, subWeeks, addYears, subYears } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { storage, type TimeEntry } from '../lib/storage';
@@ -43,16 +43,30 @@ const CalendarPage: React.FC = () => {
     };
 
     const renderHeader = () => {
+        const handlePrev = () => {
+            if (viewMode === 'week') setCurrentDate(subWeeks(currentDate, 1));
+            else if (viewMode === 'year') setCurrentDate(subYears(currentDate, 1));
+            else setCurrentDate(subMonths(currentDate, 1));
+        };
+
+        const handleNext = () => {
+            if (viewMode === 'week') setCurrentDate(addWeeks(currentDate, 1));
+            else if (viewMode === 'year') setCurrentDate(addYears(currentDate, 1));
+            else setCurrentDate(addMonths(currentDate, 1));
+        };
+
         return (
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div className="flex items-center gap-4 bg-slate-800/50 p-2 rounded-xl border border-slate-700">
-                    <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                    <button onClick={handlePrev} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
                         <ChevronLeft size={20} />
                     </button>
                     <h2 className="text-xl font-bold min-w-[140px] text-center">
-                        {format(currentDate, viewMode === 'year' ? 'yyyy' : 'MMMM yyyy', { locale: de })}
+                        {viewMode === 'week'
+                            ? `KW ${format(currentDate, 'w', { locale: de })} ${format(currentDate, 'yyyy')}`
+                            : format(currentDate, viewMode === 'year' ? 'yyyy' : 'MMMM yyyy', { locale: de })}
                     </h2>
-                    <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                    <button onClick={handleNext} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
                         <ChevronRight size={20} />
                     </button>
                 </div>
@@ -95,7 +109,7 @@ const CalendarPage: React.FC = () => {
                 {/* Weekday Headers */}
                 <div className="grid grid-cols-7 mb-2">
                     {weekDays.map(d => (
-                        <div key={d} className={`text-center font-medium ${mini ? 'text-[10px] text-slate-500' : 'text-sm text-slate-400 uppercase tracking-wider'}`}>
+                        <div key={d} className={`text-center font-medium ${mini ? 'text-xs text-slate-500' : 'text-sm text-slate-400 uppercase tracking-wider'}`}>
                             {d}
                         </div>
                     ))}
@@ -127,7 +141,7 @@ const CalendarPage: React.FC = () => {
                                 onClick={() => !mini && handleDateClick(day)}
                                 className={`
                                     relative p-1 rounded-lg border border-transparent transition-all
-                                    ${mini ? 'aspect-square text-[10px] flex items-center justify-center' : 'min-h-[80px] md:min-h-[100px] cursor-pointer hover:bg-white/5 hover:scale-[1.02]'}
+                                    ${mini ? 'aspect-square text-xs flex flex-col items-center justify-center gap-0.5' : 'min-h-[80px] md:min-h-[100px] cursor-pointer hover:bg-white/5 hover:scale-[1.02]'}
                                     ${bgClass}
                                 `}
                             >
@@ -142,20 +156,33 @@ const CalendarPage: React.FC = () => {
 
                                 {/* Indicators (Only in normal view) */}
                                 {!mini && (
-                                    <div className="mt-6 space-y-1">
-                                        {dayEntries.map((e, i) => (
-                                            <div key={i} className={`text-xs px-1.5 py-0.5 rounded truncate ${e.type === 'work' ? 'bg-sky-500/20 text-sky-300' :
-                                                e.type === 'vacation' ? 'bg-emerald-500/20 text-emerald-300' :
-                                                    'bg-rose-500/20 text-rose-300'
-                                                }`}>
-                                                {e.type === 'work' ? `${e.startTime}-${e.endTime}` : e.type}
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <>
+                                        {/* Desktop: Detailed Text */}
+                                        <div className="hidden sm:block mt-6 space-y-1">
+                                            {dayEntries.map((e, i) => (
+                                                <div key={i} className={`text-xs px-1.5 py-0.5 rounded truncate ${e.type === 'work' ? 'bg-sky-500/20 text-sky-300' :
+                                                    e.type === 'vacation' ? 'bg-emerald-500/20 text-emerald-300' :
+                                                        'bg-rose-500/20 text-rose-300'
+                                                    }`}>
+                                                    {e.type === 'work' ? `${e.startTime}-${e.endTime}` : e.type}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Mobile: Dots */}
+                                        <div className="sm:hidden absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                                            {dayEntries.map((e, i) => (
+                                                <div key={i} className={`w-1.5 h-1.5 rounded-full ${e.type === 'work' ? 'bg-sky-400' :
+                                                    e.type === 'vacation' ? 'bg-emerald-400' :
+                                                        'bg-rose-400'
+                                                    }`} />
+                                            ))}
+                                        </div>
+                                    </>
                                 )}
                                 {/* Mini view simple dot */}
                                 {mini && dayEntries.length > 0 && (
-                                    <div className={`w-1 h-1 rounded-full absolute bottom-1 mx-auto ${hasVacation ? 'bg-emerald-400' : 'bg-sky-400'}`}></div>
+                                    <div className={`w-1 h-1 rounded-full ${hasVacation ? 'bg-emerald-400' : 'bg-sky-400'}`}></div>
                                 )}
                             </div>
                         );
@@ -172,7 +199,7 @@ const CalendarPage: React.FC = () => {
         }
 
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
                 {months.map(m => (
                     <div key={m.toString()} className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50 hover:border-slate-600 transition-colors">
                         <h3 className="text-center font-bold mb-4 text-sky-100">{format(m, 'MMMM', { locale: de })}</h3>
@@ -244,7 +271,7 @@ const CalendarPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen">
+        <div>
             {renderHeader()}
 
             {viewMode === 'month' && renderMonthView()}

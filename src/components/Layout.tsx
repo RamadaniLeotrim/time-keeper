@@ -6,6 +6,7 @@ const Layout: React.FC = () => {
     const navItems = [
         { path: '/', label: 'Dashboard', icon: '📊' },
         { path: '/calendar', label: 'Kalender', icon: '📅' },
+        { path: '/calculator', label: 'Rechner', icon: '🧮' },
         { path: '/settings', label: 'Einstellungen', icon: '⚙️' },
         { path: '/debug', label: 'Debug', icon: '🐞' },
     ];
@@ -38,7 +39,7 @@ const Layout: React.FC = () => {
                 </div>
             </nav>
 
-            <main className="pt-6 pb-24 md:pt-24 px-4 max-w-5xl mx-auto">
+            <main className="pt-6 pb-24 md:pt-24 md:pb-8 px-4 max-w-5xl mx-auto">
                 <div className="animate-fade-in">
                     <Outlet />
                 </div>

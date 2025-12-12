@@ -301,6 +301,16 @@ const Dashboard: React.FC = () => {
                     <h1 className="text-3xl font-bold text-white">Übersicht</h1>
                     <p className="text-slate-400">Willkommen zurück!</p>
                 </div>
+                <button
+                    onClick={() => {
+                        setCurrentEntry(undefined);
+                        setIsModalOpen(true);
+                    }}
+                    className="flex items-center gap-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white px-4 py-2 rounded-xl shadow-lg transition-all transform hover:scale-105"
+                >
+                    <Plus size={20} />
+                    <span className="font-semibold">Neuer Eintrag</span>
+                </button>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -367,20 +377,6 @@ const Dashboard: React.FC = () => {
                         <p className="text-xs text-slate-500 mt-2">Gesammelt durch &gt;45h/Woche</p>
                     </div>
                 </div>
-
-                <div
-                    onClick={() => {
-                        setCurrentEntry(undefined);
-                        setIsModalOpen(true);
-                    }}
-                    className="p-6 rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 shadow-xl cursor-pointer group hover:shadow-sky-500/20 transition-all flex flex-col justify-center items-center text-center border border-white/10"
-                >
-                    <div className="bg-white/20 p-3 rounded-full mb-3 group-hover:scale-110 transition-transform">
-                        <Plus size={32} className="text-white" />
-                    </div>
-                    <h3 className="text-white font-bold text-lg">Neuer Eintrag</h3>
-                    <p className="text-sky-100/70 text-sm">Arbeitszeit oder Abwesenheit</p>
-                </div>
             </div>
 
             {/* Recent Entries List */}
@@ -397,7 +393,7 @@ const Dashboard: React.FC = () => {
                         </div>
                     ) : (
                         <div className="divide-y divide-slate-700/50">
-                            {entries.map((e, i) => (
+                            {entries.slice(0, 5).map((e, i) => (
                                 <div key={i} onClick={() => handleEditEntry(e)} className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer">
                                     <div className="flex items-center gap-4">
                                         <div className={`p-2 rounded-lg ${e.type === 'work' ? 'bg-sky-500/10 text-sky-400' : 'bg-amber-500/10 text-amber-400'}`}>
