@@ -11,7 +11,7 @@ export default defineConfig({
     out: './drizzle',
     dialect: 'turso',
     dbCredentials: {
-        url: isLocal ? 'file:./local.db' : process.env.VITE_TURSO_DATABASE_URL!,
-        authToken: isLocal ? undefined : process.env.VITE_TURSO_AUTH_TOKEN!,
+        url: isLocal ? 'file:./local.db' : (process.env.TURSO_DATABASE_URL || process.env.VITE_TURSO_DATABASE_URL!),
+        authToken: isLocal ? undefined : (process.env.TURSO_AUTH_TOKEN || process.env.VITE_TURSO_AUTH_TOKEN!),
     },
 });

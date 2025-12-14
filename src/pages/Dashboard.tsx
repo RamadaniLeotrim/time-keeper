@@ -150,10 +150,14 @@ const Dashboard: React.FC = () => {
             totalOT += toOt;
         });
 
-        // Add Initial Offset to Flex
-        const initialBalance = -1029;
+        // Add Initial Offset to Flex (from Settings)
+        const initialBalance = cfg.initialOvertimeBalance || 0;
         setYearBalance(totalFlex + initialBalance);
-        setOvertimeBalance(totalOT);
+        setOvertimeBalance(totalOT); // Overtime account usually starts at 0 or should we also have initial OT? 
+        // User asked for "-17:09h" start for *calculation*. 
+        // "Die Rechnung ab -17:09h". Usually this implies the Flex Account starts there.
+        // Overtime Account is separate. 
+        // We will apply it to Year Balance (Flex).
 
 
         // Re-calculate simple Month/Week balances for display (Standard Logic, no OT separation for small views or? 
@@ -219,7 +223,8 @@ const Dashboard: React.FC = () => {
 
         // Vacation Balance
         const taken = data.filter(e => e.type === 'vacation').length;
-        setVacationBalance(cfg.yearlyVacationDays - taken);
+        const carryover = cfg.vacationCarryover || 0;
+        setVacationBalance((cfg.yearlyVacationDays + carryover) - taken);
     };
 
     const calculateDuration = (e: TimeEntry) => {
@@ -358,7 +363,10 @@ const Dashboard: React.FC = () => {
                         <p className="text-4xl font-bold text-amber-400">
                             {vacationBalance} <span className="text-base font-normal text-amber-400/70">Tage</span>
                         </p>
-                        <p className="text-xs text-slate-500 mt-2">Von {config?.yearlyVacationDays} Tagen verfügbar</p>
+                        <p className="text-xs text-slate-500 mt-2">
+                            Von {config ? (config.yearlyVacationDays + (config.vacationCarryover || 0)) : 25} Tagen verfügbar
+                            {config?.vacationCarryover ? ` (inkl. ${config.vacationCarryover} Übertrag)` : ''}
+                        </p>
                     </div>
                 </div>
 

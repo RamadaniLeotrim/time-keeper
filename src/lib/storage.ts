@@ -3,6 +3,8 @@ export interface UserConfig {
     id: number;
     weeklyTargetHours: number;
     yearlyVacationDays: number;
+    initialOvertimeBalance: number;
+    vacationCarryover: number;
 }
 
 export interface TimeEntry {
@@ -51,7 +53,13 @@ class StorageService {
         try {
             return await this.request<UserConfig>('/config');
         } catch (e) {
-            return { id: 1, weeklyTargetHours: 41, yearlyVacationDays: 25 };
+            return {
+                id: 1,
+                weeklyTargetHours: 41,
+                yearlyVacationDays: 25,
+                initialOvertimeBalance: 0,
+                vacationCarryover: 0
+            };
         }
     }
 
@@ -75,6 +83,13 @@ class StorageService {
         await this.request('/entries', {
             method: 'POST',
             body: JSON.stringify(entry)
+        });
+    }
+
+    async addTimeEntries(entries: NewTimeEntry[]): Promise<void> {
+        await this.request('/entries', {
+            method: 'POST',
+            body: JSON.stringify(entries)
         });
     }
 

@@ -5,6 +5,8 @@ import { storage } from '../lib/storage';
 const Settings: React.FC = () => {
     const [weeklyHours, setWeeklyHours] = useState(40);
     const [vacationDays, setVacationDays] = useState(25);
+    const [initialOvertime, setInitialOvertime] = useState(0);
+    const [vacationCarryover, setVacationCarryover] = useState(0);
     const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
     useEffect(() => {
@@ -15,16 +17,28 @@ const Settings: React.FC = () => {
         const config = await storage.getUserConfig();
         setWeeklyHours(config.weeklyTargetHours);
         setVacationDays(config.yearlyVacationDays);
+        setInitialOvertime(config.initialOvertimeBalance || 0);
+        setVacationCarryover(config.vacationCarryover || 0);
     };
 
     const handleSave = async () => {
         setStatus('saving');
         await storage.saveUserConfig({
             weeklyTargetHours: weeklyHours,
-            yearlyVacationDays: vacationDays
+            yearlyVacationDays: vacationDays,
+            initialOvertimeBalance: initialOvertime,
+            vacationCarryover: vacationCarryover
         });
         setTimeout(() => setStatus('saved'), 500);
         setTimeout(() => setStatus('idle'), 2000);
+    };
+
+    // Helper for Settings UI
+    const minutesToTime = (mins: number): string => {
+        const h = Math.floor(Math.abs(mins) / 60);
+        const m = Math.round(Math.abs(mins) % 60);
+        const sign = mins < 0 ? '-' : '';
+        return `${sign}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
     };
 
     return (
@@ -100,6 +114,67 @@ const Settings: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Saldo Start Card */}
+                <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 p-6 rounded-2xl relative overflow-hidden group hover:border-amber-500/30 transition-colors">
+                    <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                        <Briefcase className="text-amber-400" size={20} />
+                        Start-Salden
+                    </h2>
+
+                    <div className="space-y-6">
+                        {/* Overtime */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Initialer Überzeitsaldo
+                            </label>
+                            <div className="flex bg-slate-900/50 rounded-lg p-2 border border-slate-700 focus-within:border-amber-500 transition-colors">
+                                <input
+                                    type="text"
+                                    placeholder="-17:09"
+                                    defaultValue={minutesToTime(initialOvertime)}
+                                    key={initialOvertime} // Force re-render on load
+                                    onBlur={(e) => {
+                                        const val = e.target.value;
+                                        // Simple parse: +/-HH:MM
+                                        let mins = 0;
+                                        const isNeg = val.trim().startsWith('-');
+                                        const parts = val.replace('-', '').split(':');
+                                        if (parts.length === 2) {
+                                            mins = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                                            if (isNeg) mins = -mins;
+                                        }
+                                        setInitialOvertime(mins);
+                                    }}
+                                    className="bg-transparent w-full outline-none text-white px-2"
+                                />
+                                <span className="text-slate-500 px-2 select-none">HH:MM</span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-2">
+                                Format: HH:MM oder -HH:MM (z.B. -17:09)
+                            </p>
+                        </div>
+
+                        {/* Vacation Carryover */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Ferienübertrag (Vorjahr)
+                            </label>
+                            <div className="flex bg-slate-900/50 rounded-lg p-2 border border-slate-700 focus-within:border-amber-500 transition-colors">
+                                <input
+                                    type="number"
+                                    value={vacationCarryover}
+                                    onChange={(e) => setVacationCarryover(Number(e.target.value))}
+                                    className="bg-transparent w-full outline-none text-white px-2"
+                                />
+                                <span className="text-slate-500 px-2 select-none">Tage</span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-2">
+                                Resturlaub aus dem Vorjahr (wird zum aktuellen Anspruch addiert).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Import Card */}
                 <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 p-6 rounded-2xl relative overflow-hidden group hover:border-indigo-500/30 transition-colors">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -132,9 +207,9 @@ const Settings: React.FC = () => {
                                                 const entries = await parseExcelExport(file);
                                                 console.log("Importing", entries.length, "entries");
 
-                                                // Batch add (one by one for now as storage is mock)
-                                                for (const entry of entries) {
-                                                    await storage.addTimeEntry(entry);
+                                                // Batch add
+                                                if (entries.length > 0) {
+                                                    await storage.addTimeEntries(entries);
                                                 }
 
                                                 alert(`${entries.length} Einträge erfolgreich importiert!`);

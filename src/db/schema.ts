@@ -4,6 +4,8 @@ export const userConfig = sqliteTable('user_config', {
     id: integer('id').primaryKey(),
     weeklyTargetHours: integer('weekly_target_hours').notNull().default(40),
     yearlyVacationDays: integer('yearly_vacation_days').notNull().default(25),
+    initialOvertimeBalance: integer('initial_overtime_balance').notNull().default(0), // in minutes
+    vacationCarryover: integer('vacation_carryover').notNull().default(0), // in days
 });
 
 export const timeEntries = sqliteTable('time_entries', {

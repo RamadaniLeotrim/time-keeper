@@ -25,7 +25,13 @@ export default async function handler(request: VercelRequest, response: VercelRe
                 return response.status(200).json(result[0]);
             }
             // Init default if not exists
-            const def = { id: 1, weeklyTargetHours: 41, yearlyVacationDays: 25 };
+            const def = {
+                id: 1,
+                weeklyTargetHours: 41,
+                yearlyVacationDays: 25,
+                initialOvertimeBalance: 0,
+                vacationCarryover: 0
+            };
             await db.insert(userConfig).values(def).onConflictDoNothing();
             return response.status(200).json(def);
         }

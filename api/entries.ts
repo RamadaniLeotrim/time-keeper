@@ -29,8 +29,22 @@ export default async function handler(request: VercelRequest, response: VercelRe
             if (!body) {
                 return response.status(400).json({ error: 'Missing body' });
             }
-            const result = await db.insert(timeEntries).values(body).returning();
-            return response.status(201).json(result[0]);
+
+            // Check if array or single
+            const data = Array.isArray(body) ? body : [body];
+
+            if (data.length === 0) {
+                return response.status(400).json({ error: 'Empty payload' });
+            }
+
+            const result = await db.insert(timeEntries).values(data).returning();
+
+            // Return array if input was array, else single
+            if (Array.isArray(body)) {
+                return response.status(201).json(result);
+            } else {
+                return response.status(201).json(result[0]);
+            }
         }
 
         if (request.method === 'DELETE') {
