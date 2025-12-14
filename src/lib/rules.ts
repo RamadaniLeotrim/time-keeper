@@ -148,8 +148,8 @@ export const calculateWorkDetails = (
             effectivePause += 15;
         }
 
-        let extraDeduction = effectivePause - gap;
-        let currentNet = rawNet - extraDeduction;
+        const extraDeduction = effectivePause - gap;
+        const currentNet = rawNet - extraDeduction;
 
         // Rule 3: > 9h
         if (currentNet > (9 * 60)) {

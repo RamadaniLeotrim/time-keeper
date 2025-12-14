@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { storage, type TimeEntry, type UserConfig } from '../lib/storage';
 import TimeEntryModal from '../components/TimeEntryModal';
 import { Plus, Clock, Sun, TrendingUp, Calendar, CalendarDays, CalendarRange } from 'lucide-react';
-import { startOfYear, startOfMonth, startOfWeek, eachDayOfInterval, isWeekend, format, startOfDay, isBefore, subDays, isSameDay } from 'date-fns';
+import { startOfYear, startOfMonth, startOfWeek, eachDayOfInterval, isWeekend, format, startOfDay, isBefore, isSameDay } from 'date-fns';
 
 const Dashboard: React.FC = () => {
     const [config, setConfig] = useState<UserConfig | null>(null);
@@ -17,10 +17,6 @@ const Dashboard: React.FC = () => {
     const [weekBalance, setWeekBalance] = useState(0);
     const [vacationBalance, setVacationBalance] = useState(0);
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
     const loadData = async () => {
         const cfg = await storage.getUserConfig();
         const data = await storage.getEntries();
@@ -28,6 +24,10 @@ const Dashboard: React.FC = () => {
         setEntries(data);
         calculateStats(cfg, data);
     };
+
+    useEffect(() => {
+        loadData();
+    }, []);
 
     const calculateStats = (cfg: UserConfig, data: TimeEntry[]) => {
         const dailyTargetMin = (cfg.weeklyTargetHours / 5) * 60;

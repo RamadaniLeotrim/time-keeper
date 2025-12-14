@@ -15,14 +15,14 @@ const CalendarPage: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
     const [currentEntry, setCurrentEntry] = useState<TimeEntry | undefined>(undefined);
 
-    useEffect(() => {
-        loadEntries();
-    }, [currentDate, viewMode]); // Reload when navigation happens (in case we optimize fetch later)
-
     const loadEntries = async () => {
         const data = await storage.getEntries();
         setEntries(data);
     };
+
+    useEffect(() => {
+        loadEntries();
+    }, [currentDate, viewMode]); // Reload when navigation happens (in case we optimize fetch later)
 
     const handleDateClick = (date: Date) => {
         setCurrentEntry(undefined); // New entry

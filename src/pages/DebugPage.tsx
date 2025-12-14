@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { storage, type TimeEntry, type UserConfig } from '../lib/storage';
 import { Bug } from 'lucide-react';
-import { isWeekend, startOfDay, isSameDay, eachDayOfInterval, format } from 'date-fns';
+import { isWeekend, eachDayOfInterval, format } from 'date-fns';
 
 const DebugPage: React.FC = () => {
     const [config, setConfig] = useState<UserConfig | null>(null);
     const [entries, setEntries] = useState<TimeEntry[]>([]);
-
-    useEffect(() => {
-        loadData();
-    }, []);
 
     const loadData = async () => {
         const cfg = await storage.getUserConfig();
@@ -17,6 +13,10 @@ const DebugPage: React.FC = () => {
         setConfig(cfg);
         setEntries(data);
     };
+
+    useEffect(() => {
+        loadData();
+    }, []);
 
     const calculateDuration = (e: TimeEntry) => {
         if (!e.startTime || !e.endTime) return 0;
@@ -50,7 +50,11 @@ const DebugPage: React.FC = () => {
     const maxDate = new Date(); // Today
 
     const daysInRange = eachDayOfInterval({ start: minDate, end: maxDate });
-    const processedEntries: any[] = []; // Unified list of real + missing entries
+    const processedEntries: (TimeEntry & {
+        isMissing?: boolean,
+        _debugCount: number,
+        _debugWeeklyAcc: number
+    })[] = []; // Unified list of real + missing entries
 
     // Calculate Running Totals (Chronologically)
     const runningTotals = new Map<string, number>();
@@ -100,16 +104,16 @@ const DebugPage: React.FC = () => {
                 runningTotals.set(dateStr, currentTotal);
 
                 processedEntries.push({
-                    id: `missing-${dateStr}`,
+                    id: 0, // Mock ID for debug view
                     date: dateStr,
-                    type: 'MISSING',
+                    type: 'other', // Fallback type
                     startTime: '-',
                     endTime: '-',
                     pauseDuration: 0,
                     notes: 'Kein Eintrag (Soll nicht erfüllt)',
                     isMissing: true,
                     _debugCount: 0,
-                    _debugWeeklyAcc: weeklyWorkAccumulator // Show acc before this day? or current? current is +0
+                    _debugWeeklyAcc: weeklyWorkAccumulator
                 });
             }
             // Empty Weekend -> Do nothing for display (except maybe debug row?)
@@ -141,9 +145,9 @@ const DebugPage: React.FC = () => {
                 runningTotals.set(dateStr, currentTotal);
 
                 processedEntries.push({
-                    id: `ot-deduction-${dateStr}`,
+                    id: 0, // Mock ID for debug
                     date: dateStr,
-                    type: 'OVERTIME',
+                    type: 'other', // Fallback
                     startTime: '',
                     endTime: '',
                     pauseDuration: 0,

@@ -35,3 +35,4 @@ local.db
 
 # Temporary scripts
 inspect_excel.cjs
+.vercel

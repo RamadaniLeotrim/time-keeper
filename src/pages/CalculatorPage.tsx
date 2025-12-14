@@ -11,6 +11,8 @@ const CalculatorPage: React.FC = () => {
 
     const [result, setResult] = useState<WorkCalculation | null>(null);
 
+    const isValidTime = (t: string) => /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(t);
+
     // Auto-calculate on change
     useEffect(() => {
         if (isValidTime(t1) && ((isValidTime(t2) && !t3 && !t4) || (isValidTime(t2) && isValidTime(t3) && isValidTime(t4)) || (!t2 && !t3 && isValidTime(t4)))) {
@@ -42,8 +44,6 @@ const CalculatorPage: React.FC = () => {
             setResult(null);
         }
     }, [t1, t2, t3, t4]);
-
-    const isValidTime = (t: string) => /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(t);
 
     const reset = () => {
         setT1(''); setT2(''); setT3(''); setT4('');

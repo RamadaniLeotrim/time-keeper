@@ -41,7 +41,7 @@ export const parseExcelExport = async (file: File): Promise<NewTimeEntry[]> => {
                     // Raw Values
                     const infoCol = row[2]?.toString().trim() || '';
                     const startCol = row[3]?.toString().trim() || '';
-                    const endCol = row[6]?.toString().trim() || '';
+                    // const endCol = row[6]?.toString().trim() || ''; // Unused
 
                     // Combine text to search for keywords
                     const fullText = `${infoCol} ${startCol}`.toUpperCase();
@@ -60,7 +60,7 @@ export const parseExcelExport = async (file: File): Promise<NewTimeEntry[]> => {
                         let startTime: string | null = null;
                         let endTime: string | null = null;
                         let pause = 0;
-                        let hasOriginalPause = false;
+                        // let hasOriginalPause = false; // Unused
 
 
                         // 1. Identify Scenario: 2 Bookings vs 4 Bookings
@@ -219,7 +219,7 @@ export const parseExcelExport = async (file: File): Promise<NewTimeEntry[]> => {
                             // Extra Deduction = 45 - 20 = 25m.
                             // Net Work = RawNet - 25m.
 
-                            let extraDeduction = effectivePause - gap;
+                            const extraDeduction = effectivePause - gap;
                             let currentNet = rawNet - extraDeduction;
 
                             // Rule 3: > 9h Net -> Ensure min pause 45m or 60m
