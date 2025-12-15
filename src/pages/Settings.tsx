@@ -43,13 +43,36 @@ const Settings: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in max-w-2xl mx-auto">
-            <header>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-                    Konfiguration
-                </h1>
-                <p className="text-slate-400 mt-2">
-                    Passen Sie Ihre Arbeitszeitmodelle und Urlaubstage an.
-                </p>
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                        Konfiguration
+                    </h1>
+                    <p className="text-slate-400 mt-2">
+                        Passen Sie Ihre Arbeitszeitmodelle und Urlaubstage an.
+                    </p>
+                </div>
+                <button
+                    onClick={handleSave}
+                    disabled={status === 'saving'}
+                    className={`
+                        flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold transition-all
+                        ${status === 'saved'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                            : 'bg-sky-500 hover:bg-sky-400 text-white shadow-lg shadow-sky-500/20'}
+                    `}
+                >
+                    {status === 'saving' ? (
+                        <span className="animate-pulse">Speichere...</span>
+                    ) : status === 'saved' ? (
+                        <>Gespeichert!</>
+                    ) : (
+                        <>
+                            <Save size={18} />
+                            Speichern
+                        </>
+                    )}
+                </button>
             </header>
 
             <div className="grid gap-6">
@@ -248,30 +271,7 @@ const Settings: React.FC = () => {
                 </div>
             </div>
 
-            {/* Save Button */}
-            <div className="flex justify-end pt-4">
-                <button
-                    onClick={handleSave}
-                    disabled={status === 'saving'}
-                    className={`
-                        flex items-center gap-2 px-8 py-3 rounded-xl font-semibold transition-all
-                        ${status === 'saved'
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                            : 'bg-sky-500 hover:bg-sky-400 text-white shadow-lg shadow-sky-500/20'}
-                    `}
-                >
-                    {status === 'saving' ? (
-                        <span className="animate-pulse">Speichere...</span>
-                    ) : status === 'saved' ? (
-                        <>Gespeichert!</>
-                    ) : (
-                        <>
-                            <Save size={18} />
-                            Einstellungen speichern
-                        </>
-                    )}
-                </button>
-            </div>
+
         </div>
     );
 };
