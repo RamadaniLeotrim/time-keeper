@@ -23,8 +23,8 @@ const Layout: React.FC = () => {
                             TimeKeeper
                         </span>
 
-                        <div className="flex items-center gap-4">
-                            <ul className="flex justify-around w-full md:w-auto md:space-x-4">
+                        <div className="flex items-center w-full md:w-auto gap-2 md:gap-4">
+                            <ul className="flex flex-1 justify-around md:justify-start md:w-auto md:space-x-4">
                                 {navItems.map(item => (
                                     <li key={item.path}>
                                         <Link
@@ -41,6 +41,16 @@ const Layout: React.FC = () => {
                                 ))}
                             </ul>
 
+                            {/* Mobile Logout */}
+                            <button
+                                onClick={logout}
+                                className="md:hidden p-2 text-slate-400 hover:text-rose-400 transition-colors"
+                                title="Abmelden"
+                            >
+                                <LogOut size={20} />
+                            </button>
+
+                            {/* Desktop User Info & Logout */}
                             <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-700">
                                 <div className="text-right">
                                     <p className="text-sm font-semibold text-white leading-none">{user?.name}</p>
