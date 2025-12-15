@@ -24,7 +24,7 @@ const Layout: React.FC = () => {
                         </span>
 
                         <div className="flex items-center w-full md:w-auto gap-2 md:gap-4">
-                            <ul className="flex items-center justify-between w-full md:justify-start md:w-auto md:space-x-4">
+                            <ul className="flex flex-1 items-center justify-between md:justify-start md:w-auto md:space-x-4">
                                 {navItems.map(item => (
                                     <li key={item.path} className="flex-1 flex justify-center md:flex-none">
                                         <Link
