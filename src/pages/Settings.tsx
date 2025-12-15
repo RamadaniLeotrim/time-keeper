@@ -43,7 +43,7 @@ const Settings: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in max-w-2xl mx-auto">
-            <header className="flex flex-row justify-between items-center gap-4">
+            <header className="sticky top-0 md:top-16 z-40 bg-slate-900/90 backdrop-blur-md -mx-4 px-4 py-4 mb-6 border-b border-white/5 flex flex-row justify-between items-center gap-4 transition-all">
                 <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
                         Konfiguration
