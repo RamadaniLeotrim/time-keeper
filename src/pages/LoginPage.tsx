@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, ArrowRight, Loader2 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
-    const { login } = useAuth();
+    const { login, user } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // Check if there's a return url
+    // @ts-ignore
+    const from = location.state?.from?.pathname || '/';
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (user) navigate(from, { replace: true });
+    }, [user, navigate, from]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,6 +36,7 @@ const LoginPage: React.FC = () => {
 
             if (res.ok) {
                 login(data.user);
+                navigate(from, { replace: true });
             } else {
                 setError(data.error || 'Fehler beim Anmelden');
             }
