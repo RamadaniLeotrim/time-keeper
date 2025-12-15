@@ -24,12 +24,12 @@ const Layout: React.FC = () => {
                         </span>
 
                         <div className="flex items-center w-full md:w-auto gap-2 md:gap-4">
-                            <ul className="flex flex-1 justify-around md:justify-start md:w-auto md:space-x-4">
+                            <ul className="flex items-center justify-between w-full md:justify-start md:w-auto md:space-x-4">
                                 {navItems.map(item => (
-                                    <li key={item.path}>
+                                    <li key={item.path} className="flex-1 flex justify-center md:flex-none">
                                         <Link
                                             to={item.path}
-                                            className={`flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 px-3 py-2 rounded-lg transition-colors ${location.pathname === item.path
+                                            className={`flex flex-col md:flex-row items-center justify-center space-y-1 md:space-y-0 md:space-x-2 px-3 py-2 rounded-lg transition-colors w-full md:w-auto ${location.pathname === item.path
                                                 ? 'text-sky-400 bg-white/5'
                                                 : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
                                                 }`}
