@@ -56,7 +56,7 @@ const Settings: React.FC = () => {
                     onClick={handleSave}
                     disabled={status === 'saving'}
                     className={`
-                        flex items-center gap-2 px-3 md:px-6 py-2.5 rounded-xl font-semibold transition-all
+                        flex items-center gap-2 p-3 md:px-6 md:py-3 rounded-xl font-semibold transition-all
                         ${status === 'saved'
                             ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
                             : 'bg-sky-500 hover:bg-sky-400 text-white shadow-lg shadow-sky-500/20'}
@@ -64,17 +64,17 @@ const Settings: React.FC = () => {
                 >
                     {status === 'saving' ? (
                         <>
-                            <span className="animate-spin"><Save size={18} /></span>
+                            <span className="animate-spin"><Save size={20} /></span>
                             <span className="hidden md:inline animate-pulse">Speichere...</span>
                         </>
                     ) : status === 'saved' ? (
                         <>
-                            <Save size={18} />
+                            <Save size={20} />
                             <span className="hidden md:inline">Gespeichert!</span>
                         </>
                     ) : (
                         <>
-                            <Save size={18} />
+                            <Save size={20} />
                             <span className="hidden md:inline">Speichern</span>
                         </>
                     )}
