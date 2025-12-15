@@ -43,7 +43,7 @@ const Settings: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in max-w-2xl mx-auto">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <header className="flex flex-row justify-between items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
                         Konfiguration
@@ -56,20 +56,26 @@ const Settings: React.FC = () => {
                     onClick={handleSave}
                     disabled={status === 'saving'}
                     className={`
-                        flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold transition-all
+                        flex items-center gap-2 px-3 md:px-6 py-2.5 rounded-xl font-semibold transition-all
                         ${status === 'saved'
                             ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
                             : 'bg-sky-500 hover:bg-sky-400 text-white shadow-lg shadow-sky-500/20'}
                     `}
                 >
                     {status === 'saving' ? (
-                        <span className="animate-pulse">Speichere...</span>
+                        <>
+                            <span className="animate-spin"><Save size={18} /></span>
+                            <span className="hidden md:inline animate-pulse">Speichere...</span>
+                        </>
                     ) : status === 'saved' ? (
-                        <>Gespeichert!</>
+                        <>
+                            <Save size={18} />
+                            <span className="hidden md:inline">Gespeichert!</span>
+                        </>
                     ) : (
                         <>
                             <Save size={18} />
-                            Speichern
+                            <span className="hidden md:inline">Speichern</span>
                         </>
                     )}
                 </button>
