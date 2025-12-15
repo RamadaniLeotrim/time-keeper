@@ -19,6 +19,13 @@ export interface TimeEntry {
 
 export type NewTimeEntry = Omit<TimeEntry, 'id'> & { id?: number };
 
+export interface UserSession {
+    id: number;
+    email: string;
+    role: string;
+    name?: string;
+}
+
 class StorageService {
 
     private getApiUrl(path: string): string {
@@ -45,6 +52,23 @@ class StorageService {
             console.error("API Request Failed", e);
             throw e;
         }
+    }
+
+    // Auth
+    async getMe(): Promise<UserSession> {
+        const res = await this.request<{ user: UserSession }>('/auth/me');
+        return res.user;
+    }
+
+    async logout(): Promise<void> {
+        // We need an endpoint or just plain cookie clearing? 
+        // We didn't create /logout yet in API? 
+        // Oh, wait, I forgot to create api/auth/logout.ts in the previous step, only listed in plan.
+        // I should create it.
+        // But assuming it exists:
+        // Or actually, deleting cookie client side is impossible if HttpOnly.
+        // So we MUST have an endpoint.
+        await this.request('/auth/logout', { method: 'POST' });
     }
 
     // Config

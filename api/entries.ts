@@ -1,7 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from './_db.js';
 import { timeEntries } from '../src/db/schema.js';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, and } from 'drizzle-orm';
+import { getUserFromRequest } from './_auth_helper.js';
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
     // Add CORS headers
@@ -18,9 +19,14 @@ export default async function handler(request: VercelRequest, response: VercelRe
         return;
     }
 
+    const session = getUserFromRequest(request);
+    if (!session) return response.status(401).json({ error: 'Unauthorized' });
+
     try {
         if (request.method === 'GET') {
-            const result = await db.select().from(timeEntries).orderBy(desc(timeEntries.date));
+            const result = await db.select().from(timeEntries)
+                .where(eq(timeEntries.userId, session.id))
+                .orderBy(desc(timeEntries.date));
             return response.status(200).json(result);
         }
 
@@ -31,11 +37,14 @@ export default async function handler(request: VercelRequest, response: VercelRe
             }
 
             // Check if array or single
-            const data = Array.isArray(body) ? body : [body];
+            let data = Array.isArray(body) ? body : [body];
 
             if (data.length === 0) {
                 return response.status(400).json({ error: 'Empty payload' });
             }
+
+            // Aattach user ID
+            data = data.map(entry => ({ ...entry, userId: session.id }));
 
             const result = await db.insert(timeEntries).values(data).returning();
 
@@ -51,13 +60,15 @@ export default async function handler(request: VercelRequest, response: VercelRe
             const { id, all } = request.query;
 
             if (all === 'true') {
-                await db.delete(timeEntries);
+                // Delete all for THIS USER only
+                await db.delete(timeEntries).where(eq(timeEntries.userId, session.id));
                 return response.status(200).json({ success: true, message: 'All entries deleted' });
             }
 
             if (id && !Array.isArray(id)) {
-                // Delete single
-                await db.delete(timeEntries).where(eq(timeEntries.id, Number(id)));
+                // Delete single, ensured it belongs to user
+                await db.delete(timeEntries)
+                    .where(and(eq(timeEntries.id, Number(id)), eq(timeEntries.userId, session.id)));
                 return response.status(200).json({ success: true });
             } else {
                 return response.status(400).json({ error: 'Missing ID or all=true flag' });

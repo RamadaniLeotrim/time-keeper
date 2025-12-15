@@ -1,7 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from './_db.js';
 import { timeEntries } from '../src/db/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getUserFromRequest } from './_auth_helper.js';
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
     // Add CORS headers
@@ -18,6 +19,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
         return;
     }
 
+    // Authenticate
+    const session = getUserFromRequest(request);
+    if (!session) return response.status(401).json({ error: 'Unauthorized' });
+
     try {
         const { id } = request.query;
 
@@ -32,18 +37,26 @@ export default async function handler(request: VercelRequest, response: VercelRe
             if (!body) return response.status(400).json({ error: 'Missing body' });
 
             // Remove ID from body if present to avoid conflict
-            const { id: _, ...updateData } = body;
+            const { id: _, userId, ...updateData } = body;
 
+            // Ensure we only update if it belongs to user
             const result = await db.update(timeEntries)
                 .set(updateData)
-                .where(eq(timeEntries.id, entryId))
+                .where(and(eq(timeEntries.id, entryId), eq(timeEntries.userId, session.id)))
                 .returning();
+
+            if (result.length === 0) return response.status(404).json({ error: 'Not found or permission denied' });
 
             return response.status(200).json(result[0]);
         }
 
         if (request.method === 'DELETE') {
-            await db.delete(timeEntries).where(eq(timeEntries.id, entryId));
+            const result = await db.delete(timeEntries)
+                .where(and(eq(timeEntries.id, entryId), eq(timeEntries.userId, session.id)))
+                .returning();
+
+            if (result.length === 0) return response.status(404).json({ error: 'Not found or permission denied' });
+
             return response.status(200).json({ success: true });
         }
 

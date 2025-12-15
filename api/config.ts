@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getUserFromRequest } from './_auth_helper.js';
 import { db } from './_db.js';
 import { userConfig } from '../src/db/schema.js';
 import { eq } from 'drizzle-orm';
@@ -18,36 +19,58 @@ export default async function handler(request: VercelRequest, response: VercelRe
         return;
     }
 
+    // Authenticate
+    const session = getUserFromRequest(request);
+    if (!session) return response.status(401).json({ error: 'Unauthorized' });
+
     try {
         if (request.method === 'GET') {
-            const result = await db.select().from(userConfig).where(eq(userConfig.id, 1));
+            const result = await db.select().from(userConfig).where(eq(userConfig.userId, session.id));
             if (result.length > 0) {
                 return response.status(200).json(result[0]);
             }
-            // Init default if not exists
+            // Init default
             const def = {
-                id: 1,
+                userId: session.id,
                 weeklyTargetHours: 41,
                 yearlyVacationDays: 25,
                 initialOvertimeBalance: 0,
                 vacationCarryover: 0
             };
-            await db.insert(userConfig).values(def).onConflictDoNothing();
-            return response.status(200).json(def);
+            const inserted = await db.insert(userConfig).values(def).returning();
+            return response.status(200).json(inserted[0]);
         }
 
         if (request.method === 'POST') {
             const body = request.body;
             if (!body) return response.status(400).json({ error: 'Missing body' });
 
-            // Ensure ID is 1
-            const updated = { ...body, id: 1 };
+            // We need to know the config ID to update, OR lookup by userId
+            const existing = await db.select().from(userConfig).where(eq(userConfig.userId, session.id));
 
-            await db.insert(userConfig)
-                .values(updated)
-                .onConflictDoUpdate({ target: userConfig.id, set: updated });
+            if (existing.length > 0) {
+                // Update
+                const configId = existing[0].id;
+                // Don't allow changing IDs
+                const { id, userId, ...updates } = body;
 
-            return response.status(200).json(updated);
+                await db.update(userConfig)
+                    .set(updates)
+                    .where(eq(userConfig.id, configId));
+
+                return response.status(200).json({ ...existing[0], ...updates });
+            } else {
+                // Create
+                const def = {
+                    userId: session.id,
+                    weeklyTargetHours: body.weeklyTargetHours || 41,
+                    yearlyVacationDays: body.yearlyVacationDays || 25,
+                    initialOvertimeBalance: body.initialOvertimeBalance || 0,
+                    vacationCarryover: body.vacationCarryover || 0
+                };
+                const inserted = await db.insert(userConfig).values(def).returning();
+                return response.status(200).json(inserted[0]);
+            }
         }
 
         return response.status(405).json({ error: 'Method not allowed' });
