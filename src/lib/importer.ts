@@ -271,13 +271,22 @@ export const parseExcelExport = async (file: File): Promise<NewTimeEntry[]> => {
                     const checkForType = (keyword: string, type: NewTimeEntry['type'], icon: string) => {
                         if (fullText.includes(keyword)) {
                             let note = icon;
+                            let val = 1.0;
 
-                            if (fullText.includes('GT')) {
+                            const isHalfDay = hasWorkTime ||
+                                fullText.includes('VM') ||
+                                fullText.includes('NM') ||
+                                fullText.includes('VORMITTAG') ||
+                                fullText.includes('NACHMITTAG');
+
+                            if (fullText.includes('GT') || fullText.includes('GANZER TAG')) {
                                 note += ' Ganzer Tag';
-                            } else if (fullText.includes('VM')) {
-                                note += ' Vormittag';
-                            } else if (fullText.includes('NM')) {
-                                note += ' Nachmittag';
+                                val = 1.0; // Explicit Full Day overrides detection? Usually GT is explicit.
+                            } else if (isHalfDay) {
+                                val = 0.5;
+                                if (fullText.includes('VM')) note += ' Vormittag';
+                                else if (fullText.includes('NM')) note += ' Nachmittag';
+                                else note += ' Halbtags';
                             }
 
                             entries.push({
@@ -287,7 +296,7 @@ export const parseExcelExport = async (file: File): Promise<NewTimeEntry[]> => {
                                 endTime: null,
                                 pauseDuration: 0,
                                 notes: note,
-                                value: 1.0
+                                value: val
                             });
                         }
                     };

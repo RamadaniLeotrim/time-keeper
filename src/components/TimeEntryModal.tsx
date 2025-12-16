@@ -123,6 +123,26 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                         </div>
                     </div>
 
+                    {/* Half Day Toggle (Only for non-work) */}
+                    {type !== 'work' && (
+                        <div className="bg-slate-900/30 p-1 rounded-xl border border-slate-700/50 flex p-1 animate-fade-in">
+                            <button
+                                type="button"
+                                onClick={() => setValue(1.0)}
+                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${value === 1.0 ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-300'}`}
+                            >
+                                Ganzer Tag
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setValue(0.5)}
+                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${value === 0.5 ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-300'}`}
+                            >
+                                Halber Tag (0.5)
+                            </button>
+                        </div>
+                    )}
+
                     {/* Work Details (Only visible for 'work') */}
                     {type === 'work' && (
                         <div className="bg-slate-900/30 p-4 rounded-xl border border-slate-700/50 space-y-4 animate-fade-in">
