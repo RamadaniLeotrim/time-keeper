@@ -23,9 +23,10 @@ const Layout: React.FC = () => {
                 <div className="max-w-5xl mx-auto px-4">
                     <div className="flex justify-between items-center h-16">
                         {/* Left Side: Logo & Navigation */}
-                        <div className="flex items-center w-full md:w-auto flex-1 md:flex-none gap-8">
+                        <div className="flex items-center w-full md:w-auto flex-1 md:flex-none gap-3">
+                            <img src="/favicon.png" alt="Logo" className="w-8 h-8 hidden md:block" />
                             <span className="text-xl font-bold bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent hidden md:block">
-                                TimeKeeper
+                                Time Keeper
                             </span>
 
                             <ul className="flex flex-1 md:flex-none items-center justify-between md:justify-start md:space-x-4">

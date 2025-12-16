@@ -48,6 +48,9 @@ const RegisterPage: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
             <div className="w-full max-w-md space-y-8 animate-fade-in">
                 <div className="text-center">
+                    <div className="flex justify-center mb-4">
+                        <img src="/favicon.png" alt="Logo" className="w-16 h-16 drop-shadow-lg" />
+                    </div>
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent mb-2">
                         Neues Konto
                     </h1>
