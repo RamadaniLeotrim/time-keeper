@@ -5,7 +5,11 @@
             "destination": "/api/$1"
         },
         {
-            "source": "/((?!api/|.*\\..*).*)",
+            "source": "/(login|register|calendar|calculator|settings|debug|admin)",
+            "destination": "/index.html"
+        },
+        {
+            "source": "/",
             "destination": "/index.html"
         }
     ]
