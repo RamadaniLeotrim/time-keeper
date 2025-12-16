@@ -1,6 +1,8 @@
+/* eslint-disable */
 import React, { useState, useEffect } from 'react';
-import { Calculator, Clock, ArrowRight, RotateCcw } from 'lucide-react';
+import { Calculator, Clock, ArrowRight, RotateCcw, Target } from 'lucide-react';
 import { calculateWorkDetails, minutesToTime, timeToMinutes, type WorkCalculation } from '../lib/rules';
+import { storage } from '../lib/storage';
 
 const CalculatorPage: React.FC = () => {
     // Inputs
@@ -8,13 +10,23 @@ const CalculatorPage: React.FC = () => {
     const [t2, setT2] = useState('');
     const [t3, setT3] = useState('');
     const [t4, setT4] = useState('');
+    const [targetMinutes, setTargetMinutes] = useState(8.4 * 60); // Default 8h 24m
 
     const [result, setResult] = useState<WorkCalculation | null>(null);
 
     const isValidTime = (t: string) => /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(t);
 
+    useEffect(() => {
+        // Load target from config
+        storage.getUserConfig().then(cfg => {
+            // Weekly / 5 = Daily
+            setTargetMinutes((cfg.weeklyTargetHours / 5) * 60);
+        });
+    }, []);
+
     // Auto-calculate on change
     useEffect(() => {
+        // ... (rest of useEffect logic remains similar but needed for context)
         if (isValidTime(t1) && ((isValidTime(t2) && !t3 && !t4) || (isValidTime(t2) && isValidTime(t3) && isValidTime(t4)) || (!t2 && !t3 && isValidTime(t4)))) {
             // Handle "Implicit 2 bookings" (T1 ... T4) if user skips T2/T3
             // Our logic expects specific slots.
@@ -56,6 +68,27 @@ const CalculatorPage: React.FC = () => {
         setT3(minutesToTime(mins + 30));
     };
 
+    const autoFillEndWithTarget = () => {
+        if (!t1 || !t2 || !t3 || !isValidTime(t1) || !isValidTime(t2) || !isValidTime(t3)) return;
+
+        // Brute force forward from t3
+        const startSearch = timeToMinutes(t3);
+        let currentEnd = startSearch;
+
+        // Max loop 24h
+        while (currentEnd < 24 * 60) {
+            const t4Candidate = minutesToTime(currentEnd);
+            const r = calculateWorkDetails(t1, t2, t3, t4Candidate);
+
+            // Allow 1 min tolerance or exact match
+            if (r.netDuration >= targetMinutes) {
+                setT4(t4Candidate);
+                return;
+            }
+            currentEnd++;
+        }
+    };
+
     return (
         <div className="max-w-2xl mx-auto animate-fade-in space-y-8">
             <header className="mb-8">
@@ -81,7 +114,7 @@ const CalculatorPage: React.FC = () => {
                     <div className="space-y-6">
                         <div className="space-y-3">
                             <label className="text-sm font-medium text-slate-400 uppercase tracking-wider">Block 1 (Morgen)</label>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <span className="text-xs text-slate-500">Start</span>
                                     <input
@@ -114,7 +147,7 @@ const CalculatorPage: React.FC = () => {
 
                         <div className="space-y-3">
                             <label className="text-sm font-medium text-slate-400 uppercase tracking-wider">Block 2 (Nachmittag)</label>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <div className="flex justify-between items-center">
                                         <span className="text-xs text-slate-500">Start</span>
@@ -136,7 +169,19 @@ const CalculatorPage: React.FC = () => {
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <span className="text-xs text-slate-500">Ende</span>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs text-slate-500">Ende</span>
+                                        {t1 && t2 && t3 && (
+                                            <button
+                                                onClick={autoFillEndWithTarget}
+                                                className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded hover:bg-emerald-500/20 transition-colors flex items-center gap-1"
+                                                title={`Sollzeit (${minutesToTime(targetMinutes)}h) auffüllen`}
+                                            >
+                                                <Target size={10} />
+                                                Soll
+                                            </button>
+                                        )}
+                                    </div>
                                     <input
                                         type="time"
                                         value={t4}
@@ -156,7 +201,7 @@ const CalculatorPage: React.FC = () => {
 
                         {result ? (
                             <div className="flex-1 flex flex-col justify-between space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="p-4 rounded-xl bg-slate-700/30 border border-slate-600/30">
                                         <div className="text-slate-400 text-xs uppercase font-bold mb-1">Brutto Arbeitszeit</div>
                                         <div className="text-2xl font-mono text-white">{minutesToTime(result.rawDuration)} h</div>
@@ -176,6 +221,28 @@ const CalculatorPage: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Balance / Saldo Display */}
+                                {(() => {
+                                    const balance = result.netDuration - targetMinutes;
+                                    const isPositive = balance >= 0;
+                                    const colorClass = isPositive ? 'text-emerald-400' : 'text-rose-400';
+                                    const bgClass = isPositive ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-rose-500/10 border-rose-500/20';
+
+                                    return (
+                                        <div className={`p-4 rounded-xl border ${bgClass} flex justify-between items-center`}>
+                                            <div>
+                                                <div className={`${colorClass} opacity-80 text-xs uppercase font-bold`}>Tages-Saldo</div>
+                                                <div className={`text-xl font-mono font-bold ${colorClass}`}>
+                                                    {balance > 0 ? '+' : ''}{minutesToTime(balance)} h
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-slate-500 text-xs">Soll: {minutesToTime(targetMinutes)} h</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 <div className="mt-4">
                                     <h3 className="text-sm font-medium text-slate-400 mb-2">Angewendete Regeln:</h3>

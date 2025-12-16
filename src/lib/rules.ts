@@ -102,13 +102,13 @@ export const calculateWorkDetails = (
             }
 
             // Rule 2: > 5.5h
-            if (effectiveAttendance > (5.5 * 60)) {
+            if (effectiveAttendance >= (5.5 * 60)) {
                 pause += 30;
                 log.push("Netto-Arbeit > 5.5h (+30min Pause)");
             }
 
             // Rule 3: > 9h
-            if (effectiveAttendance > (9 * 60)) {
+            if (effectiveAttendance >= (9 * 60)) {
                 const targetPause = workingAt930 ? 60 : 45;
                 if (pause < targetPause) {
                     log.push(`Netto-Arbeit > 9h (Pause auf ${targetPause}min erhöht)`);
@@ -136,7 +136,7 @@ export const calculateWorkDetails = (
         let effectivePause = gap;
 
         // UPDATE 7h Rule
-        if (rawNet > (7 * 60)) {
+        if (rawNet >= (7 * 60)) {
             if (effectivePause < 30) {
                 effectivePause = 30;
                 log.push("Mittagspause < 30min & Arbeit > 7h (Pause auf 30min gesetzt)");
@@ -152,7 +152,7 @@ export const calculateWorkDetails = (
         const currentNet = rawNet - extraDeduction;
 
         // Rule 3: > 9h
-        if (currentNet > (9 * 60)) {
+        if (currentNet >= (9 * 60)) {
             const targetLimit = workingAt930 ? 60 : 45;
             if (effectivePause < targetLimit) {
                 const diff = targetLimit - effectivePause;
