@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { storage, type TimeEntry } from '../lib/storage';
 import TimeEntryModal from '../components/TimeEntryModal';
 import DayOverviewModal from '../components/DayOverviewModal';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 type ViewMode = 'month' | 'year' | 'week';
 
@@ -18,10 +19,16 @@ const CalendarPage: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
     const [currentEntry, setCurrentEntry] = useState<TimeEntry | undefined>(undefined);
     const [isDayOverviewOpen, setIsDayOverviewOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     const loadEntries = async () => {
-        const data = await storage.getEntries();
-        setEntries(data);
+        setIsLoading(true);
+        try {
+            const data = await storage.getEntries();
+            setEntries(data);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -274,8 +281,14 @@ const CalendarPage: React.FC = () => {
         );
     };
 
+    if (isLoading && entries.length === 0) {
+        return <LoadingOverlay isLoading={true} />;
+    }
+
     return (
-        <div>
+        <div className="relative">
+            <LoadingOverlay isLoading={isLoading} />
+
             {renderHeader()}
 
             {viewMode === 'month' && renderMonthView()}
@@ -308,10 +321,6 @@ const CalendarPage: React.FC = () => {
                 onClose={() => {
                     setIsModalOpen(false);
                     setCurrentEntry(undefined);
-                    // Check if we should re-open overview?
-                    // Usually if we closed Edit, we want to go back to Overview if multiple entries exist?
-                    // But handling 'back' without complex state is stack-like.
-                    // For now, close all.
                 }}
                 initialDate={selectedDate}
                 existingEntry={currentEntry}
@@ -322,9 +331,6 @@ const CalendarPage: React.FC = () => {
                         await storage.addTimeEntry(entry);
                     }
                     await loadEntries();
-                    // If we saved, maybe re-open overview if selectedDate is set?
-                    // The 'selectedDate' remains set.
-                    // But simpler to close and let user click again if needed.
                 }}
                 onDelete={currentEntry ? async () => {
                     await storage.deleteTimeEntry(currentEntry.id);

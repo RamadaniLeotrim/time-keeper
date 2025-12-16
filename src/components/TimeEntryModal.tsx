@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Trash2 } from 'lucide-react';
+import { X, Check, Trash2, Loader2 } from 'lucide-react';
 import type { NewTimeEntry, TimeEntry } from '../lib/storage';
 
 interface Props {
@@ -19,6 +19,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
     const [pause, setPause] = useState(30);
     const [notes, setNotes] = useState('');
     const [value, setValue] = useState(1.0);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -38,6 +39,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                 setEndTime('17:00');
                 setPause(30);
                 setNotes('');
+                setValue(1.0);
             }
         }
     }, [isOpen, existingEntry, initialDate]);
@@ -46,22 +48,33 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await onSave({
-            date,
-            type,
-            startTime: type === 'work' ? startTime : null,
-            endTime: type === 'work' ? endTime : null,
-            pauseDuration: type === 'work' ? pause : 0,
-            notes,
-            value: type === 'work' ? 1.0 : value
-        });
-        onClose();
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        try {
+            await onSave({
+                date,
+                type,
+                startTime: type === 'work' ? startTime : null,
+                endTime: type === 'work' ? endTime : null,
+                pauseDuration: type === 'work' ? pause : 0,
+                notes,
+                value: type === 'work' ? 1.0 : value
+            });
+            onClose();
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleDelete = async () => {
         if (onDelete && confirm('Eintrag wirklich löschen?')) {
-            await onDelete();
-            onClose();
+            setIsSubmitting(true);
+            try {
+                await onDelete();
+                onClose();
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -70,7 +83,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
             <div className="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden scale-100 animate-scale-in">
                 <div className="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/50">
                     <h2 className="text-lg font-semibold text-white">{existingEntry ? 'Eintrag bearbeiten' : 'Eintrag erfassen'}</h2>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+                    <button onClick={onClose} disabled={isSubmitting} className="text-slate-400 hover:text-white transition-colors disabled:opacity-50">
                         <X size={20} />
                     </button>
                 </div>
@@ -86,6 +99,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                                 onChange={e => setDate(e.target.value)}
                                 className="bg-transparent w-full text-white outline-none [color-scheme:dark]"
                                 required
+                                disabled={isSubmitting}
                             />
                         </div>
                     </div>
@@ -108,12 +122,14 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                                 <button
                                     key={t.id}
                                     type="button"
+                                    disabled={isSubmitting}
                                     onClick={() => setType(t.id as any)}
                                     className={`
                                         flex flex-col items-center justify-center p-3 rounded-xl border transition-all
                                         ${type === t.id
                                             ? 'bg-sky-500/20 border-sky-500 text-sky-400'
                                             : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'}
+                                        disabled:opacity-50 disabled:cursor-not-allowed
                                     `}
                                 >
                                     <span className="text-xl mb-1">{t.icon}</span>
@@ -128,15 +144,17 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                         <div className="bg-slate-900/30 p-1 rounded-xl border border-slate-700/50 flex p-1 animate-fade-in">
                             <button
                                 type="button"
+                                disabled={isSubmitting}
                                 onClick={() => setValue(1.0)}
-                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${value === 1.0 ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-300'}`}
+                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${value === 1.0 ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-300'} disabled:opacity-50`}
                             >
                                 Ganzer Tag
                             </button>
                             <button
                                 type="button"
+                                disabled={isSubmitting}
                                 onClick={() => setValue(0.5)}
-                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${value === 0.5 ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-300'}`}
+                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${value === 0.5 ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-300'} disabled:opacity-50`}
                             >
                                 Halber Tag (0.5)
                             </button>
@@ -154,6 +172,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                                         value={startTime}
                                         onChange={e => setStartTime(e.target.value)}
                                         className="w-full bg-slate-800 rounded-lg p-2 border border-slate-700 text-white outline-none focus:border-sky-500 [color-scheme:dark]"
+                                        disabled={isSubmitting}
                                     />
                                 </div>
                                 <div>
@@ -163,6 +182,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                                         value={endTime}
                                         onChange={e => setEndTime(e.target.value)}
                                         className="w-full bg-slate-800 rounded-lg p-2 border border-slate-700 text-white outline-none focus:border-sky-500 [color-scheme:dark]"
+                                        disabled={isSubmitting}
                                     />
                                 </div>
                             </div>
@@ -174,6 +194,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                                     value={pause}
                                     onChange={e => setPause(Math.max(0, parseInt(e.target.value) || 0))}
                                     className="w-full bg-slate-800 rounded-lg p-2 border border-slate-700 text-white outline-none focus:border-sky-500 [color-scheme:dark]"
+                                    disabled={isSubmitting}
                                 />
                                 <span className="text-slate-400 text-sm">Min</span>
                             </div>
@@ -188,6 +209,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                             onChange={e => setNotes(e.target.value)}
                             className="w-full bg-slate-900/50 rounded-lg p-2 border border-slate-700 text-white outline-none focus:border-sky-500 h-20 text-sm"
                             placeholder="Optional..."
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -195,19 +217,21 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                         {existingEntry && onDelete && (
                             <button
                                 type="button"
+                                disabled={isSubmitting}
                                 onClick={handleDelete}
-                                className="px-4 py-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-xl border border-rose-500/30 transition-all flex items-center justify-center"
+                                className="px-4 py-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-xl border border-rose-500/30 transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Eintrag löschen"
                             >
-                                <Trash2 size={20} />
+                                {isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
                             </button>
                         )}
                         <button
                             type="submit"
-                            className="flex-1 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-sky-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                            disabled={isSubmitting}
+                            className="flex-1 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-sky-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <Check size={18} />
-                            Speichern
+                            {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                            {isSubmitting ? 'Speichert...' : 'Speichern'}
                         </button>
                     </div>
                 </form>

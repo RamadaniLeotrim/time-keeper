@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Plus, Clock, Sun, TrendingUp, Trash2, Edit2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Plus, Clock, Sun, TrendingUp, Trash2, Edit2, Loader2 } from 'lucide-react';
 import type { TimeEntry } from '../lib/storage';
 
 interface Props {
@@ -8,11 +8,13 @@ interface Props {
     date: string;
     entries: TimeEntry[];
     onEdit: (entry: TimeEntry) => void;
-    onDelete: (entry: TimeEntry) => void;
+    onDelete: (entry: TimeEntry) => Promise<void>;
     onAddNew: () => void;
 }
 
 const DayOverviewModal: React.FC<Props> = ({ isOpen, onClose, date, entries, onEdit, onDelete, onAddNew }) => {
+    const [deletingId, setDeletingId] = useState<number | null>(null);
+
     if (!isOpen) return null;
 
     // Sort entries by startTime
@@ -20,6 +22,18 @@ const DayOverviewModal: React.FC<Props> = ({ isOpen, onClose, date, entries, onE
         if (a.startTime && b.startTime) return a.startTime.localeCompare(b.startTime);
         return 0;
     });
+
+    const handleDelete = async (entry: TimeEntry) => {
+        if (confirm('Eintrag löschen?')) {
+            setDeletingId(entry.id);
+            try {
+                await onDelete(entry);
+                // If successful, the entry will disappear from the list via props update
+            } finally {
+                setDeletingId(null);
+            }
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
@@ -45,8 +59,8 @@ const DayOverviewModal: React.FC<Props> = ({ isOpen, onClose, date, entries, onE
                             <div key={entry.id} className="bg-slate-700/30 border border-slate-600/50 rounded-xl p-3 flex items-center justify-between group hover:bg-slate-700/50 transition-colors">
                                 <div className="flex items-center gap-3">
                                     <div className={`p-2 rounded-lg ${entry.type === 'work' ? 'bg-sky-500/10 text-sky-400' :
-                                            entry.type === 'vacation' ? 'bg-emerald-500/10 text-emerald-400' :
-                                                'bg-rose-500/10 text-rose-400'
+                                        entry.type === 'vacation' ? 'bg-emerald-500/10 text-emerald-400' :
+                                            'bg-rose-500/10 text-rose-400'
                                         }`}>
                                         {entry.type === 'work' ? <Clock size={18} /> :
                                             entry.type === 'vacation' ? <Sun size={18} /> :
@@ -63,19 +77,19 @@ const DayOverviewModal: React.FC<Props> = ({ isOpen, onClose, date, entries, onE
                                 <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={() => onEdit(entry)}
-                                        className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                        disabled={deletingId === entry.id}
+                                        className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
                                         title="Bearbeiten"
                                     >
                                         <Edit2 size={16} />
                                     </button>
                                     <button
-                                        onClick={() => {
-                                            if (confirm('Eintrag löschen?')) onDelete(entry);
-                                        }}
-                                        className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                        onClick={() => handleDelete(entry)}
+                                        disabled={deletingId === entry.id}
+                                        className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors disabled:opacity-50"
                                         title="Löschen"
                                     >
-                                        <Trash2 size={16} />
+                                        {deletingId === entry.id ? <Loader2 size={16} className="animate-spin text-rose-400" /> : <Trash2 size={16} />}
                                     </button>
                                 </div>
                             </div>

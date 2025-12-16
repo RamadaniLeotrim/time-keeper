@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Save, Briefcase, Sun } from 'lucide-react';
+import { Save, Briefcase, Sun, Loader2, Trash2 } from 'lucide-react';
 import { storage } from '../lib/storage';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 const Settings: React.FC = () => {
     const [weeklyHours, setWeeklyHours] = useState(40);
@@ -8,17 +9,23 @@ const Settings: React.FC = () => {
     const [initialOvertime, setInitialOvertime] = useState(0);
     const [vacationCarryover, setVacationCarryover] = useState(0);
     const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         loadConfig();
     }, []);
 
     const loadConfig = async () => {
-        const config = await storage.getUserConfig();
-        setWeeklyHours(config.weeklyTargetHours);
-        setVacationDays(config.yearlyVacationDays);
-        setInitialOvertime(config.initialOvertimeBalance || 0);
-        setVacationCarryover(config.vacationCarryover || 0);
+        setIsLoading(true);
+        try {
+            const config = await storage.getUserConfig();
+            setWeeklyHours(config.weeklyTargetHours);
+            setVacationDays(config.yearlyVacationDays);
+            setInitialOvertime(config.initialOvertimeBalance || 0);
+            setVacationCarryover(config.vacationCarryover || 0);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleSave = async () => {
@@ -42,7 +49,9 @@ const Settings: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in max-w-2xl mx-auto">
+        <div className="space-y-8 animate-fade-in max-w-2xl mx-auto relative">
+            <LoadingOverlay isLoading={isLoading} />
+
             <header className="sticky top-0 md:top-16 z-40 bg-slate-900/90 backdrop-blur-md -mx-4 px-4 py-4 mb-6 border-b border-white/5 flex flex-row justify-between items-center gap-4 transition-all">
                 <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
@@ -60,11 +69,12 @@ const Settings: React.FC = () => {
                         ${status === 'saved'
                             ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
                             : 'bg-sky-500 hover:bg-sky-400 text-white shadow-lg shadow-sky-500/20'}
+                        disabled:opacity-50 disabled:cursor-not-allowed
                     `}
                 >
                     {status === 'saving' ? (
                         <>
-                            <span className="animate-spin"><Save size={20} /></span>
+                            <span className="animate-spin"><Loader2 size={20} /></span>
                             <span className="hidden md:inline animate-pulse">Speichere...</span>
                         </>
                     ) : status === 'saved' ? (
@@ -230,6 +240,7 @@ const Settings: React.FC = () => {
                                         const file = e.target.files?.[0];
                                         if (!file) return;
                                         if (confirm(`Möchten Sie "${file.name}" importieren? Dies fügt neue Einträge hinzu.`)) {
+                                            setIsLoading(true);
                                             try {
                                                 const { parseExcelExport } = await import('../lib/importer');
                                                 setStatus('saving');
@@ -248,6 +259,8 @@ const Settings: React.FC = () => {
                                                 console.error(err);
                                                 alert('Fehler beim Importieren der Datei.');
                                                 setStatus('idle');
+                                            } finally {
+                                                setIsLoading(false);
                                             }
                                         }
                                     }}
@@ -259,15 +272,23 @@ const Settings: React.FC = () => {
 
                 {/* Data Management */}
                 <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 p-6 rounded-2xl relative overflow-hidden group hover:border-rose-500/30 transition-colors">
-                    <h2 className="text-xl font-semibold text-white mb-4 text-rose-400">Gefahrenzone</h2>
+                    <h2 className="text-xl font-semibold text-white mb-4 text-rose-400 flex items-center gap-2">
+                        <Trash2 size={20} />
+                        Gefahrenzone
+                    </h2>
                     <p className="text-slate-400 text-sm mb-4">Hier können Sie alle importierten Daten löschen. Dies kann nicht rückgängig gemacht werden.</p>
                     <button
                         onClick={async () => {
                             if (confirm('Sind Sie sicher? Alle Einträge werden unwiderruflich gelöscht.')) {
-                                await storage.clearAllEntries();
-                                alert('Datenbank geleert.');
-                                setStatus('saved');
-                                setTimeout(() => setStatus('idle'), 2000);
+                                setIsLoading(true);
+                                try {
+                                    await storage.clearAllEntries();
+                                    alert('Datenbank geleert.');
+                                    setStatus('saved');
+                                    setTimeout(() => setStatus('idle'), 2000);
+                                } finally {
+                                    setIsLoading(false);
+                                }
                             }
                         }}
                         className="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg transition-colors text-sm font-medium"
@@ -276,8 +297,6 @@ const Settings: React.FC = () => {
                     </button>
                 </div>
             </div>
-
-
         </div>
     );
 };

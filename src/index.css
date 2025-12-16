@@ -12,21 +12,50 @@
 }
 
 @layer base {
-  html, body {
+
+  html,
+  body {
     height: 100%;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
   }
-  
+
   body {
     background-color: var(--background);
     color: var(--foreground);
     -webkit-font-smoothing: antialiased;
+    /* Firefox Scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: #334155 transparent;
+    /* thumb track */
   }
-  
+
   #root {
     min-height: 100%;
+  }
+
+  /* WebKit Scrollbar (Chrome, Edge, Safari) */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+    /* Slate 700 */
+    border-radius: 5px;
+    border: 2px solid #0f172a;
+    /* Padding effect via border */
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+    /* Slate 600 */
   }
 }
 

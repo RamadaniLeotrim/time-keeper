@@ -36,3 +36,7 @@ local.db
 # Temporary scripts
 inspect_excel.cjs
 .vercel
+.env*.local
+
+.env.prod
+.env.dev
