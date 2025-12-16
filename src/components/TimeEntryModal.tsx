@@ -164,7 +164,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                     {/* Work Details (Only visible for 'work') */}
                     {type === 'work' && (
                         <div className="bg-slate-900/30 p-4 rounded-xl border border-slate-700/50 space-y-4 animate-fade-in">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs text-slate-400 mb-1 block">Start</label>
                                     <input
