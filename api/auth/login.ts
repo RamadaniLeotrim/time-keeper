@@ -26,7 +26,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
         }
 
         setAuthCookie(response, { id: user.id, email: user.email, role: user.role });
-        return response.status(200).json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
+        return response.status(200).json({ success: true, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
 
     } catch (error) {
         console.error(error);
