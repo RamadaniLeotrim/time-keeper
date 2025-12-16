@@ -173,7 +173,8 @@ export const parseExcelExport = async (file: File): Promise<NewTimeEntry[]> => {
                                     startTime,
                                     endTime,
                                     pauseDuration: pause,
-                                    notes: 'Auto-Pause (2 Bookings)'
+                                    notes: 'Auto-Pause (2 Bookings)',
+                                    value: 1.0
                                 });
                             }
                         }
@@ -256,7 +257,8 @@ export const parseExcelExport = async (file: File): Promise<NewTimeEntry[]> => {
                                 startTime,
                                 endTime,
                                 pauseDuration: Math.round(finalPause),
-                                notes: 'Auto-Pause (4 Bookings)'
+                                notes: 'Auto-Pause (4 Bookings)',
+                                value: 1.0
                             });
                         }
                         // Helper for fallbacks or unhandled cases? 
@@ -284,7 +286,8 @@ export const parseExcelExport = async (file: File): Promise<NewTimeEntry[]> => {
                                 startTime: null,
                                 endTime: null,
                                 pauseDuration: 0,
-                                notes: note
+                                notes: note,
+                                value: 1.0
                             });
                         }
                     };

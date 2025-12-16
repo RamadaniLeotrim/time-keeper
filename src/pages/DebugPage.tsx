@@ -113,7 +113,8 @@ const DebugPage: React.FC = () => {
                     notes: 'Kein Eintrag (Soll nicht erfüllt)',
                     isMissing: true,
                     _debugCount: 0,
-                    _debugWeeklyAcc: weeklyWorkAccumulator
+                    _debugWeeklyAcc: weeklyWorkAccumulator,
+                    value: 1.0
                 });
             }
             // Empty Weekend -> Do nothing for display (except maybe debug row?)
@@ -154,7 +155,8 @@ const DebugPage: React.FC = () => {
                     notes: `Übertrag Überzeit: -${formatDuration(deduction)} (>45h)`,
                     isMissing: true,
                     _debugCount: dayEntries.length,
-                    _debugWeeklyAcc: currentWkAcc
+                    _debugWeeklyAcc: currentWkAcc,
+                    value: 1.0
                 });
             }
             weeklyWorkAccumulator = 0;
