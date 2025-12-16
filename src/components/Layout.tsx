@@ -11,7 +11,10 @@ const Layout: React.FC = () => {
         { path: '/calendar', label: 'Kalender', icon: '📅' },
         { path: '/calculator', label: 'Rechner', icon: '🧮' },
         { path: '/settings', label: 'Einstellungen', icon: '⚙️' },
-        { path: '/debug', label: 'Debug', icon: '🐞' },
+        ...(user?.role === 'admin' ? [
+            { path: '/admin', label: 'Admin', icon: '🛡️' },
+            { path: '/debug', label: 'Debug', icon: '🐞' }
+        ] : []),
     ];
 
     return (

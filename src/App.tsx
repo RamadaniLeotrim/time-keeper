@@ -10,6 +10,8 @@ import RegisterPage from './pages/RegisterPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
+import AdminPage from './pages/AdminPage';
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
@@ -26,6 +28,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  return <>{children}</>;
+};
+
+const RequireAdmin = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return null; // Let ProtectedRoute handle loading spinner or parent
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
   return <>{children}</>;
 };
 
@@ -46,7 +57,18 @@ function App() {
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="calculator" element={<CalculatorPage />} />
             <Route path="settings" element={<Settings />} />
-            <Route path="debug" element={<DebugPage />} />
+
+            {/* Admin Routes */}
+            <Route path="debug" element={
+              <RequireAdmin>
+                <DebugPage />
+              </RequireAdmin>
+            } />
+            <Route path="admin" element={
+              <RequireAdmin>
+                <AdminPage />
+              </RequireAdmin>
+            } />
           </Route>
         </Routes>
       </Router>

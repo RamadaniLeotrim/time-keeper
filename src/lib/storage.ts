@@ -143,6 +143,24 @@ class StorageService {
         });
         return res.duplicatesRemoved;
     }
+
+    // Admin
+    async getUsers(): Promise<UserSession[]> {
+        return await this.request<UserSession[]>('/admin/users');
+    }
+
+    async updateUserRole(userId: number, role: 'admin' | 'user'): Promise<void> {
+        await this.request('/admin/users', {
+            method: 'PUT',
+            body: JSON.stringify({ userId, role })
+        });
+    }
+
+    async deleteUser(userId: number): Promise<void> {
+        await this.request(`/admin/users?userId=${userId}`, {
+            method: 'DELETE'
+        });
+    }
 }
 
 export const storage = new StorageService();
