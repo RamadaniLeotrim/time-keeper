@@ -19,12 +19,13 @@ const Layout: React.FC = () => {
             <nav className="fixed bottom-0 w-full bg-slate-800/80 backdrop-blur-md border-t border-slate-700 md:top-0 md:bottom-auto md:border-b md:border-t-0 z-50">
                 <div className="max-w-5xl mx-auto px-4">
                     <div className="flex justify-between items-center h-16">
-                        <span className="text-xl font-bold bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent hidden md:block">
-                            TimeKeeper
-                        </span>
+                        {/* Left Side: Logo & Navigation */}
+                        <div className="flex items-center w-full md:w-auto flex-1 md:flex-none gap-8">
+                            <span className="text-xl font-bold bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent hidden md:block">
+                                TimeKeeper
+                            </span>
 
-                        <div className="flex items-center w-full md:w-auto gap-2 md:gap-4">
-                            <ul className="flex flex-1 items-center justify-between md:justify-start md:w-auto md:space-x-4">
+                            <ul className="flex flex-1 md:flex-none items-center justify-between md:justify-start md:space-x-4">
                                 {navItems.map(item => (
                                     <li key={item.path} className="flex-1 flex justify-center md:flex-none">
                                         <Link
@@ -35,12 +36,15 @@ const Layout: React.FC = () => {
                                                 }`}
                                         >
                                             <span className="text-xl md:text-lg">{item.icon}</span>
-                                            <span className="text-xs md:text-sm font-medium hidden md:inline">{item.label}</span>
+                                            <span className="text-xs md:text-sm font-medium hidden lg:inline">{item.label}</span>
                                         </Link>
                                     </li>
                                 ))}
                             </ul>
+                        </div>
 
+                        {/* Right Side: User & Actions */}
+                        <div className="flex items-center gap-2 md:gap-4 shrink-0 ml-4">
                             {/* Mobile Logout */}
                             <button
                                 onClick={logout}
@@ -53,8 +57,8 @@ const Layout: React.FC = () => {
                             {/* Desktop User Info & Logout */}
                             <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-700">
                                 <div className="text-right">
-                                    <p className="text-sm font-semibold text-white leading-none">{user?.name}</p>
-                                    <p className="text-xs text-slate-500 leading-none mt-1">{user?.email}</p>
+                                    <p className="text-sm font-semibold text-white leading-none truncate max-w-[120px] lg:max-w-[200px]">{user?.name}</p>
+                                    <p className="text-xs text-slate-500 leading-none mt-1 hidden lg:block truncate max-w-[200px]">{user?.email}</p>
                                 </div>
                                 <button
                                     onClick={logout}
