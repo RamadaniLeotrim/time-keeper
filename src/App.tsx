@@ -70,6 +70,9 @@ function App() {
               </RequireAdmin>
             } />
           </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
