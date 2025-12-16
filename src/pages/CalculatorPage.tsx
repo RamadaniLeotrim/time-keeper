@@ -103,7 +103,7 @@ const CalculatorPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Inputs */}
-                <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/50 shadow-xl backdrop-blur-sm">
+                <div className="bg-slate-800/60 p-4 sm:p-6 rounded-2xl border border-slate-700/50 shadow-xl backdrop-blur-sm">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-semibold text-white">Eingabe</h2>
                         <button onClick={reset} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 transition-colors" title="Zurücksetzen">
@@ -115,22 +115,22 @@ const CalculatorPage: React.FC = () => {
                         <div className="space-y-3">
                             <label className="text-sm font-medium text-slate-400 uppercase tracking-wider">Block 1 (Morgen)</label>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-1">
+                                <div className="space-y-1 min-w-0">
                                     <span className="text-xs text-slate-500">Start</span>
                                     <input
                                         type="time"
                                         value={t1}
                                         onChange={e => setT1(e.target.value)}
-                                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
+                                        className="w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
                                     />
                                 </div>
-                                <div className="space-y-1">
+                                <div className="space-y-1 min-w-0">
                                     <span className="text-xs text-slate-500">Ende</span>
                                     <input
                                         type="time"
                                         value={t2}
                                         onChange={e => setT2(e.target.value)}
-                                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
+                                        className="w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
                                     />
                                 </div>
                             </div>
@@ -148,7 +148,7 @@ const CalculatorPage: React.FC = () => {
                         <div className="space-y-3">
                             <label className="text-sm font-medium text-slate-400 uppercase tracking-wider">Block 2 (Nachmittag)</label>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-1">
+                                <div className="space-y-1 min-w-0">
                                     <div className="flex justify-between items-center">
                                         <span className="text-xs text-slate-500">Start</span>
                                         {t2 && (
@@ -165,10 +165,10 @@ const CalculatorPage: React.FC = () => {
                                         type="time"
                                         value={t3}
                                         onChange={e => setT3(e.target.value)}
-                                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
+                                        className="w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
                                     />
                                 </div>
-                                <div className="space-y-1">
+                                <div className="space-y-1 min-w-0">
                                     <div className="flex justify-between items-center">
                                         <span className="text-xs text-slate-500">Ende</span>
                                         {t1 && t2 && t3 && (
@@ -186,7 +186,7 @@ const CalculatorPage: React.FC = () => {
                                         type="time"
                                         value={t4}
                                         onChange={e => setT4(e.target.value)}
-                                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
+                                        className="w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
                                     />
                                 </div>
                             </div>
