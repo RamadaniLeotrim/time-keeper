@@ -164,7 +164,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                     {/* Work Details (Only visible for 'work') */}
                     {type === 'work' && (
                         <div className="bg-slate-900/30 p-4 rounded-xl border border-slate-700/50 space-y-4 animate-fade-in">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs text-slate-400 mb-1 block">Start</label>
                                     <input
@@ -188,15 +188,17 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">Pause (Minuten)</label>
-                                <input
-                                    type="number"
-                                    min="0" max="600"
-                                    value={pause}
-                                    onChange={e => setPause(Math.max(0, parseInt(e.target.value) || 0))}
-                                    className="w-full bg-slate-800 rounded-lg p-2 border border-slate-700 text-white outline-none focus:border-sky-500 [color-scheme:dark]"
-                                    disabled={isSubmitting}
-                                />
-                                <span className="text-slate-400 text-sm">Min</span>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        min="0" max="600"
+                                        value={pause}
+                                        onChange={e => setPause(Math.max(0, parseInt(e.target.value) || 0))}
+                                        className="w-full bg-slate-800 rounded-lg p-2 pr-10 border border-slate-700 text-white outline-none focus:border-sky-500 [color-scheme:dark]"
+                                        disabled={isSubmitting}
+                                    />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">Min</span>
+                                </div>
                             </div>
                         </div>
                     )}
