@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Save, Briefcase, Sun, Loader2, Trash2 } from 'lucide-react';
 import { storage } from '../lib/storage';
 import LoadingOverlay from '../components/LoadingOverlay';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const Settings: React.FC = () => {
+    usePageTitle('Einstellungen');
     const [weeklyHours, setWeeklyHours] = useState(40);
     const [vacationDays, setVacationDays] = useState(25);
     const [initialOvertime, setInitialOvertime] = useState(0);
@@ -45,7 +47,7 @@ const Settings: React.FC = () => {
         const h = Math.floor(Math.abs(mins) / 60);
         const m = Math.round(Math.abs(mins) % 60);
         const sign = mins < 0 ? '-' : '';
-        return `${sign}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        return `${sign}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} `;
     };
 
     return (
@@ -65,12 +67,13 @@ const Settings: React.FC = () => {
                     onClick={handleSave}
                     disabled={status === 'saving'}
                     className={`
-                        flex items-center gap-2 p-3 md:px-6 md:py-3 rounded-xl font-semibold transition-all
+                        flex items - center gap - 2 p - 3 md: px - 6 md: py - 3 rounded - xl font - semibold transition - all
                         ${status === 'saved'
                             ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                            : 'bg-sky-500 hover:bg-sky-400 text-white shadow-lg shadow-sky-500/20'}
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                    `}
+                            : 'bg-sky-500 hover:bg-sky-400 text-white shadow-lg shadow-sky-500/20'
+                        }
+disabled: opacity - 50 disabled: cursor - not - allowed
+    `}
                 >
                     {status === 'saving' ? (
                         <>
@@ -239,7 +242,7 @@ const Settings: React.FC = () => {
                                     onChange={async (e) => {
                                         const file = e.target.files?.[0];
                                         if (!file) return;
-                                        if (confirm(`Möchten Sie "${file.name}" importieren? Dies fügt neue Einträge hinzu.`)) {
+                                        if (confirm(`Möchten Sie "${file.name}" importieren ? Dies fügt neue Einträge hinzu.`)) {
                                             setIsLoading(true);
                                             try {
                                                 const { parseExcelExport } = await import('../lib/importer');

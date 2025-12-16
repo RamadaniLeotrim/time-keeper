@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserPlus, ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const RegisterPage: React.FC = () => {
+    usePageTitle('Registrieren');
     const { login, user } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState('');

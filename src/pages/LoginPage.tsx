@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const LoginPage: React.FC = () => {
+    usePageTitle('Anmelden');
     const { login, user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();

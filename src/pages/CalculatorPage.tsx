@@ -3,13 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { Calculator, Clock, ArrowRight, RotateCcw, Target } from 'lucide-react';
 import { calculateWorkDetails, minutesToTime, timeToMinutes, type WorkCalculation } from '../lib/rules';
 import { storage } from '../lib/storage';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const CalculatorPage: React.FC = () => {
+    usePageTitle('Rechner');
     // Inputs
     const [t1, setT1] = useState('');
     const [t2, setT2] = useState('');
     const [t3, setT3] = useState('');
     const [t4, setT4] = useState('');
+    const [dailyHours, setDailyHours] = useState<string>('8.2'); // 8h 12m
     const [targetMinutes, setTargetMinutes] = useState(8.4 * 60); // Default 8h 24m
 
     const [result, setResult] = useState<WorkCalculation | null>(null);

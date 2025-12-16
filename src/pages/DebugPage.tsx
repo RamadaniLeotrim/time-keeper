@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { storage, type TimeEntry, type UserConfig } from '../lib/storage';
 import { Bug } from 'lucide-react';
 import { isWeekend, eachDayOfInterval, format } from 'date-fns';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const DebugPage: React.FC = () => {
+    usePageTitle('Debug');
     const [config, setConfig] = useState<UserConfig | null>(null);
     const [entries, setEntries] = useState<TimeEntry[]>([]);
 

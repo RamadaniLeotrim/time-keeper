@@ -3,8 +3,10 @@ import { storage, type UserSession } from '../lib/storage';
 import { Shield, ShieldAlert, Trash2, User } from 'lucide-react';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { useAuth } from '../context/AuthContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const AdminPage: React.FC = () => {
+    usePageTitle('Admin');
     const { user: currentUser } = useAuth();
     const [users, setUsers] = useState<UserSession[]>([]);
     const [isLoading, setIsLoading] = useState(false);

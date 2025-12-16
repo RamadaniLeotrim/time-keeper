@@ -5,7 +5,10 @@ import LoadingOverlay from '../components/LoadingOverlay';
 import { Plus, Clock, Sun, TrendingUp, Calendar, CalendarDays, CalendarRange } from 'lucide-react';
 import { startOfYear, startOfMonth, startOfWeek, eachDayOfInterval, isWeekend, format, startOfDay, isBefore, isSameDay } from 'date-fns';
 
+import { usePageTitle } from '../hooks/usePageTitle';
+
 const Dashboard: React.FC = () => {
+    usePageTitle('Dashboard');
     const [config, setConfig] = useState<UserConfig | null>(null);
     const [entries, setEntries] = useState<TimeEntry[]>([]);
     const [currentEntry, setCurrentEntry] = useState<TimeEntry | undefined>(undefined);
