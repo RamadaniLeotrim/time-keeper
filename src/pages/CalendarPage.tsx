@@ -4,6 +4,7 @@ import { de } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { storage, type TimeEntry } from '../lib/storage';
 import TimeEntryModal from '../components/TimeEntryModal';
+import DayOverviewModal from '../components/DayOverviewModal';
 
 type ViewMode = 'month' | 'year' | 'week';
 
@@ -11,9 +12,12 @@ const CalendarPage: React.FC = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<ViewMode>('month');
     const [entries, setEntries] = useState<TimeEntry[]>([]);
+
+    // Modal States
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
     const [currentEntry, setCurrentEntry] = useState<TimeEntry | undefined>(undefined);
+    const [isDayOverviewOpen, setIsDayOverviewOpen] = useState(false);
 
     const loadEntries = async () => {
         const data = await storage.getEntries();
@@ -22,16 +26,24 @@ const CalendarPage: React.FC = () => {
 
     useEffect(() => {
         loadEntries();
-    }, [currentDate, viewMode]); // Reload when navigation happens (in case we optimize fetch later)
+    }, [currentDate, viewMode]);
 
     const handleDateClick = (date: Date) => {
-        setCurrentEntry(undefined); // New entry
-        setSelectedDate(format(date, 'yyyy-MM-dd'));
-        setIsModalOpen(true);
+        const dateStr = format(date, 'yyyy-MM-dd');
+        const dayEntries = entries.filter(e => e.date === dateStr);
+
+        setSelectedDate(dateStr);
+
+        if (dayEntries.length > 0) {
+            setIsDayOverviewOpen(true);
+        } else {
+            setCurrentEntry(undefined);
+            setIsModalOpen(true);
+        }
     };
 
     const handleEntryClick = (e: React.MouseEvent, entry: TimeEntry) => {
-        e.stopPropagation(); // Prevent date click
+        e.stopPropagation();
         setCurrentEntry(entry);
         setSelectedDate(undefined);
         setIsModalOpen(true);
@@ -106,7 +118,6 @@ const CalendarPage: React.FC = () => {
 
         return (
             <div className={`h-full ${mini ? '' : 'animate-fade-in'}`}>
-                {/* Weekday Headers */}
                 <div className="grid grid-cols-7 mb-2">
                     {weekDays.map(d => (
                         <div key={d} className={`text-center font-medium ${mini ? 'text-xs text-slate-500' : 'text-sm text-slate-400 uppercase tracking-wider'}`}>
@@ -115,14 +126,12 @@ const CalendarPage: React.FC = () => {
                     ))}
                 </div>
 
-                {/* Days Grid */}
                 <div className="grid grid-cols-7 gap-1 auto-rows-fr">
                     {days.map(day => {
                         const dayEntries = getEntryForDate(day);
                         const isCurrentMonth = isSameMonth(day, monthStart);
                         const isTodayDate = isToday(day);
 
-                        // Styling for different entry types
                         const hasWork = dayEntries.some(e => e.type === 'work');
                         const hasVacation = dayEntries.some(e => e.type === 'vacation');
                         const hasOther = dayEntries.some(e => !['work', 'vacation'].includes(e.type));
@@ -154,10 +163,8 @@ const CalendarPage: React.FC = () => {
                                     {format(day, 'd')}
                                 </span>
 
-                                {/* Indicators (Only in normal view) */}
                                 {!mini && (
                                     <>
-                                        {/* Desktop: Detailed Text */}
                                         <div className="hidden sm:block mt-6 space-y-1">
                                             {dayEntries.map((e, i) => (
                                                 <div key={i} className={`text-xs px-1.5 py-0.5 rounded truncate ${e.type === 'work' ? 'bg-sky-500/20 text-sky-300' :
@@ -168,8 +175,6 @@ const CalendarPage: React.FC = () => {
                                                 </div>
                                             ))}
                                         </div>
-
-                                        {/* Mobile: Dots */}
                                         <div className="sm:hidden absolute bottom-2 left-0 right-0 flex justify-center gap-1">
                                             {dayEntries.map((e, i) => (
                                                 <div key={i} className={`w-1.5 h-1.5 rounded-full ${e.type === 'work' ? 'bg-sky-400' :
@@ -180,7 +185,6 @@ const CalendarPage: React.FC = () => {
                                         </div>
                                     </>
                                 )}
-                                {/* Mini view simple dot */}
                                 {mini && dayEntries.length > 0 && (
                                     <div className={`w-1 h-1 rounded-full ${hasVacation ? 'bg-emerald-400' : 'bg-sky-400'}`}></div>
                                 )}
@@ -278,11 +282,36 @@ const CalendarPage: React.FC = () => {
             {viewMode === 'year' && renderYearView()}
             {viewMode === 'week' && renderWeekView()}
 
+            <DayOverviewModal
+                isOpen={isDayOverviewOpen}
+                onClose={() => setIsDayOverviewOpen(false)}
+                date={selectedDate || ''}
+                entries={entries.filter(e => e.date === selectedDate)}
+                onEdit={(entry) => {
+                    setIsDayOverviewOpen(false);
+                    setCurrentEntry(entry);
+                    setIsModalOpen(true);
+                }}
+                onDelete={async (entry) => {
+                    await storage.deleteTimeEntry(entry.id);
+                    await loadEntries();
+                }}
+                onAddNew={() => {
+                    setIsDayOverviewOpen(false);
+                    setCurrentEntry(undefined);
+                    setIsModalOpen(true);
+                }}
+            />
+
             <TimeEntryModal
                 isOpen={isModalOpen}
                 onClose={() => {
                     setIsModalOpen(false);
                     setCurrentEntry(undefined);
+                    // Check if we should re-open overview?
+                    // Usually if we closed Edit, we want to go back to Overview if multiple entries exist?
+                    // But handling 'back' without complex state is stack-like.
+                    // For now, close all.
                 }}
                 initialDate={selectedDate}
                 existingEntry={currentEntry}
@@ -292,7 +321,10 @@ const CalendarPage: React.FC = () => {
                     } else {
                         await storage.addTimeEntry(entry);
                     }
-                    await loadEntries(); // Refresh
+                    await loadEntries();
+                    // If we saved, maybe re-open overview if selectedDate is set?
+                    // The 'selectedDate' remains set.
+                    // But simpler to close and let user click again if needed.
                 }}
                 onDelete={currentEntry ? async () => {
                     await storage.deleteTimeEntry(currentEntry.id);
