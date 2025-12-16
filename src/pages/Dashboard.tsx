@@ -111,10 +111,7 @@ const Dashboard: React.FC = () => {
                 // Actually, the 45h rule is usually "Work Done > 45h". Target doesn't obscure the Work amount.
                 // So we sum WORK independently of TARGET.
 
-                const isToday = isSameDay(day, today);
-                if (!isToday) {
-                    weeks[weekKey].target += dailyTargetMin;
-                }
+                weeks[weekKey].target += dailyTargetMin;
             }
 
             weeks[weekKey].work += (dailyWork + dailyCredit);
@@ -202,7 +199,7 @@ const Dashboard: React.FC = () => {
                 if (isWeekend(day)) {
                     t = 0;
                 } else {
-                    t = isSameDay(day, today) ? 0 : dailyTargetMin;
+                    t = dailyTargetMin;
                     // Absences
                     const exc = dayEntries.filter(e => ['vacation', 'sick', 'accident', 'holiday', 'school', 'special', 'trip'].includes(e.type));
                     exc.forEach(e => {
