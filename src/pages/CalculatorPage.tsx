@@ -90,7 +90,7 @@ const CalculatorPage: React.FC = () => {
     };
 
     return (
-        <div className="max-w-2xl mx-auto animate-fade-in space-y-8">
+        <div className="max-w-2xl mx-auto animate-fade-in space-y-8 px-4 sm:px-0">
             <header className="mb-8">
                 <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                     <Calculator className="text-sky-400" />
@@ -103,7 +103,8 @@ const CalculatorPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Inputs */}
-                <div className="bg-slate-800/60 p-4 sm:p-6 rounded-2xl border border-slate-700/50 shadow-xl backdrop-blur-sm">
+                {/* Inputs */}
+                <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/50 shadow-xl backdrop-blur-sm">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-semibold text-white">Eingabe</h2>
                         <button onClick={reset} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 transition-colors" title="Zurücksetzen">
@@ -121,7 +122,7 @@ const CalculatorPage: React.FC = () => {
                                         type="time"
                                         value={t1}
                                         onChange={e => setT1(e.target.value)}
-                                        className="w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
+                                        className="appearance-none block w-full max-w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
                                     />
                                 </div>
                                 <div className="space-y-1 min-w-0">
@@ -130,7 +131,7 @@ const CalculatorPage: React.FC = () => {
                                         type="time"
                                         value={t2}
                                         onChange={e => setT2(e.target.value)}
-                                        className="w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
+                                        className="appearance-none block w-full max-w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
                                     />
                                 </div>
                             </div>
@@ -165,7 +166,7 @@ const CalculatorPage: React.FC = () => {
                                         type="time"
                                         value={t3}
                                         onChange={e => setT3(e.target.value)}
-                                        className="w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
+                                        className="appearance-none block w-full max-w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
                                     />
                                 </div>
                                 <div className="space-y-1 min-w-0">
@@ -186,7 +187,7 @@ const CalculatorPage: React.FC = () => {
                                         type="time"
                                         value={t4}
                                         onChange={e => setT4(e.target.value)}
-                                        className="w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
+                                        className="appearance-none block w-full max-w-full box-border bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-sky-500 transition-colors"
                                     />
                                 </div>
                             </div>
