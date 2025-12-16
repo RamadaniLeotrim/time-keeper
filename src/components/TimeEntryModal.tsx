@@ -79,8 +79,8 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-            <div className="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden scale-100 animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
+            <div className="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden scale-100 animate-scale-in max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <div className="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/50">
                     <h2 className="text-lg font-semibold text-white">{existingEntry ? 'Eintrag bearbeiten' : 'Eintrag erfassen'}</h2>
                     <button onClick={onClose} disabled={isSubmitting} className="text-slate-400 hover:text-white transition-colors disabled:opacity-50">
