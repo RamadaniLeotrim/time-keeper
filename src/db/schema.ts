@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 
 export const users = sqliteTable('users', {
     id: integer('id').primaryKey(),
@@ -23,6 +23,7 @@ export const timeEntries = sqliteTable('time_entries', {
     userId: integer('user_id').references(() => users.id).notNull(),
     date: text('date').notNull(), // ISO Date YYYY-MM-DD
     type: text('type', { enum: ['work', 'vacation', 'sick', 'accident', 'holiday', 'school', 'special', 'trip', 'other'] }).notNull().default('work'),
+    value: real('value').notNull().default(1.0), // 1.0 or 0.5
     startTime: text('start_time'), // HH:mm
     endTime: text('end_time'), // HH:mm
     pauseDuration: integer('pause_duration').default(0), // in minutes

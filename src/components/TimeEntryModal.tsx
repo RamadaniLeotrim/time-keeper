@@ -18,6 +18,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
     const [endTime, setEndTime] = useState('17:00');
     const [pause, setPause] = useState(30);
     const [notes, setNotes] = useState('');
+    const [value, setValue] = useState(1.0);
 
     useEffect(() => {
         if (isOpen) {
@@ -28,6 +29,7 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
                 setEndTime(existingEntry.endTime || '17:00');
                 setPause(existingEntry.pauseDuration || 30);
                 setNotes(existingEntry.notes || '');
+                setValue(existingEntry.value || 1.0);
             } else {
                 // Reset defaults for new entry
                 setDate(initialDate || new Date().toISOString().split('T')[0]);
@@ -50,7 +52,8 @@ const TimeEntryModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, in
             startTime: type === 'work' ? startTime : null,
             endTime: type === 'work' ? endTime : null,
             pauseDuration: type === 'work' ? pause : 0,
-            notes
+            notes,
+            value: type === 'work' ? 1.0 : value
         });
         onClose();
     };

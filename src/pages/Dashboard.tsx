@@ -85,12 +85,8 @@ const Dashboard: React.FC = () => {
                 const excuseEntries = dayEntries.filter(e => ['vacation', 'sick', 'accident', 'holiday', 'school', 'special', 'trip'].includes(e.type));
                 if (excuseEntries.length > 0) {
                     excuseEntries.forEach(e => {
-                        const lowerNote = (e.notes || '').toLowerCase();
-                        if (lowerNote.includes('vormittag') || lowerNote.includes('nachmittag')) {
-                            dailyCredit += (dailyTargetMin / 2);
-                        } else {
-                            dailyCredit += dailyTargetMin;
-                        }
+                        const val = e.value || 1.0;
+                        dailyCredit += (dailyTargetMin * val);
                     });
                 }
 
@@ -203,9 +199,9 @@ const Dashboard: React.FC = () => {
                     // Absences
                     const exc = dayEntries.filter(e => ['vacation', 'sick', 'accident', 'holiday', 'school', 'special', 'trip'].includes(e.type));
                     exc.forEach(e => {
-                        const n = (e.notes || '').toLowerCase();
-                        if (n.includes('vormittag') || n.includes('nachmittag')) c += dailyTargetMin / 2;
-                        else c += dailyTargetMin;
+                        // Use explicit value
+                        const val = e.value || 1.0;
+                        c += (dailyTargetMin * val);
                     });
                 }
 
@@ -219,7 +215,7 @@ const Dashboard: React.FC = () => {
         setWeekBalance(calcSimpleBalance(startOfWeek(today, { weekStartsOn: 1 }), today));
 
         // Vacation Balance
-        const taken = data.filter(e => e.type === 'vacation').length;
+        const taken = data.filter(e => e.type === 'vacation').reduce((sum, e) => sum + (e.value || 1.0), 0);
         const carryover = cfg.vacationCarryover || 0;
         setVacationBalance((cfg.yearlyVacationDays + carryover) - taken);
     };
@@ -416,7 +412,9 @@ const Dashboard: React.FC = () => {
                                                 <p className="text-xs text-slate-500">Pause: {e.pauseDuration}m</p>
                                             </>
                                         ) : (
-                                            <span className="px-3 py-1 rounded-full bg-slate-700 text-xs text-slate-300">Ganztägig</span>
+                                            <span className="px-3 py-1 rounded-full bg-slate-700 text-xs text-slate-300">
+                                                {(e.value === 0.5) ? 'Halbtags' : 'Ganztägig'}
+                                            </span>
                                         )}
                                     </div>
                                 </div>

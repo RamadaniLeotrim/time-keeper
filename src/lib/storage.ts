@@ -15,6 +15,7 @@ export interface TimeEntry {
     endTime: string | null;
     pauseDuration: number | null;
     notes: string | null;
+    value: number; // 1.0 (Full) or 0.5 (Half)
 }
 
 export type NewTimeEntry = Omit<TimeEntry, 'id'> & { id?: number };
