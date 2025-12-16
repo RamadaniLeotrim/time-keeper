@@ -12,7 +12,6 @@ const CalculatorPage: React.FC = () => {
     const [t2, setT2] = useState('');
     const [t3, setT3] = useState('');
     const [t4, setT4] = useState('');
-    const [dailyHours, setDailyHours] = useState<string>('8.2'); // 8h 12m
     const [targetMinutes, setTargetMinutes] = useState(8.4 * 60); // Default 8h 24m
 
     const [result, setResult] = useState<WorkCalculation | null>(null);

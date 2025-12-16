@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, isSameMonth, addMonths, subMonths, getYear, setMonth, isToday, addWeeks, subWeeks, addYears, subYears } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { storage, type TimeEntry, type UserConfig } from '../lib/storage';
+import { storage, type TimeEntry } from '../lib/storage';
 import TimeEntryModal from '../components/TimeEntryModal';
 import DayOverviewModal from '../components/DayOverviewModal';
 import LoadingOverlay from '../components/LoadingOverlay';
@@ -13,7 +13,6 @@ type ViewMode = 'month' | 'year' | 'week';
 const CalendarPage: React.FC = () => {
     usePageTitle('Kalender');
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [config, setConfig] = useState<UserConfig | null>(null);
     const [viewMode, setViewMode] = useState<ViewMode>('month');
     const [entries, setEntries] = useState<TimeEntry[]>([]);
 
